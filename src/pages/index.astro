@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="HerdOS — GitHub-native AI agent orchestration"
+  description="GitHub-native orchestration for AI coding agents. One command. Parallel workers. One reviewed PR."
+>
+  <!-- Hero Section -->
+  <section class="py-24 px-4">
+    <div class="max-w-6xl mx-auto text-center">
+      <div class="flex justify-center mb-8">
+        <img src="/logo.svg" alt="HerdOS" class="h-16" />
+      </div>
+      <h1 class="text-5xl sm:text-6xl font-bold mb-6 leading-tight">
+        Herd your agents.
+      </h1>
+      <p class="text-xl sm:text-2xl text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed">
+        GitHub-native orchestration for AI coding agents. One command. Parallel workers. One reviewed PR.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href="https://github.com/herd-os/herd"
+          class="inline-block bg-orange hover:bg-orange-dark text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          Get Started
+        </a>
+        <a
+          href="https://github.com/herd-os/herd"
+          class="inline-block border border-white/30 hover:border-white/60 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="py-20 px-4 bg-navy-light/30">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">How It Works</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Step 1 -->
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange text-white font-bold text-xl mb-6">
+            1
+          </div>
+          <h3 class="text-xl font-bold mb-3">Plan</h3>
+          <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
+            <code class="text-orange text-sm font-mono">herd plan 'Add dark mode support'</code>
+          </div>
+          <p class="text-white/60 text-sm leading-relaxed">
+            AI decomposes your feature into independent tasks
+          </p>
+        </div>
+        <!-- Step 2 -->
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange text-white font-bold text-xl mb-6">
+            2
+          </div>
+          <h3 class="text-xl font-bold mb-3">Execute</h3>
+          <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
+            <code class="text-orange text-sm font-mono">Workers run in parallel on self-hosted runners</code>
+          </div>
+          <p class="text-white/60 text-sm leading-relaxed">
+            Workers run in parallel on self-hosted runners, each on its own branch
+          </p>
+        </div>
+        <!-- Step 3 -->
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange text-white font-bold text-xl mb-6">
+            3
+          </div>
+          <h3 class="text-xl font-bold mb-3">Review</h3>
+          <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
+            <code class="text-orange text-sm font-mono">gh pr view --web</code>
+          </div>
+          <p class="text-white/60 text-sm leading-relaxed">
+            Changes consolidate into a single PR, agent-reviewed and ready for you
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">Built for the AI-native workflow</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="text-2xl mb-4">⚡</div>
+          <h3 class="text-lg font-bold mb-2">Parallel Execution</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Multiple AI agents working simultaneously on separate branches</p>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="text-2xl mb-4">🐙</div>
+          <h3 class="text-lg font-bold mb-2">GitHub-Native</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Issues, Actions, and PRs — no custom infrastructure needed</p>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="text-2xl mb-4">🔄</div>
+          <h3 class="text-lg font-bold mb-2">Self-Healing</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Automatic failure detection, retry with exponential backoff</p>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="text-2xl mb-4">🤝</div>
+          <h3 class="text-lg font-bold mb-2">Conflict Resolution</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Automatic merge conflict handling between parallel workers</p>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="text-2xl mb-4">🤖</div>
+          <h3 class="text-lg font-bold mb-2">Agent Review</h3>
+          <p class="text-white/60 text-sm leading-relaxed">AI reviews the batch PR before you see it</p>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="text-2xl mb-4">🔔</div>
+          <h3 class="text-lg font-bold mb-2">Zero Polling</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Event-driven architecture, no battery-draining daemons</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section class="py-20 px-4 bg-navy-light/30">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Quick Start</h2>
+      <p class="text-white/60 text-center mb-10">Up and running in minutes</p>
+      <div class="max-w-2xl mx-auto bg-navy-light rounded-xl p-6 font-mono text-sm leading-loose border border-white/10">
+        <div><span class="text-white/40">$</span> <span class="text-white">brew install herd-os/tap/herd</span></div>
+        <div><span class="text-white/40">$</span> <span class="text-white">cd your-repo</span></div>
+        <div><span class="text-white/40">$</span> <span class="text-white">herd init</span></div>
+        <div><span class="text-white/40">$</span> <span class="text-white">herd plan <span class="text-orange">"Add user authentication"</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-24 px-4">
+    <div class="max-w-6xl mx-auto text-center">
+      <h2 class="text-3xl sm:text-4xl font-bold mb-6">Ready to herd your agents?</h2>
+      <p class="text-white/60 text-lg mb-10">Join the future of AI-assisted development</p>
+      <a
+        href="https://github.com/herd-os/herd"
+        class="inline-block bg-orange hover:bg-orange-dark text-white font-semibold px-10 py-4 rounded-lg transition-colors text-lg"
+      >
+        Get Started on GitHub
+      </a>
+    </div>
+  </section>
+</BaseLayout>

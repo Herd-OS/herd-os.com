@@ -1,2 +1,9 @@
 .herd/state/
 .env
+
+# Astro
+dist/
+.astro/
+
+# Node
+node_modules/
