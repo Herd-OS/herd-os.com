@@ -6,7 +6,7 @@ platform:
 agent:
     provider: claude
     binary: ""
-    model: ""
+    model: "opus"
     max_turns: 0
 workers:
     max_concurrent: 3
@@ -14,12 +14,12 @@ workers:
     timeout_minutes: 30
 integrator:
     strategy: squash
-    on_conflict: notify
+    on_conflict: dispatch-resolver
     max_conflict_resolution_attempts: 2
     require_ci: true
     review: true
-    review_max_fix_cycles: 3
-    ci_max_fix_cycles: 2
+    review_max_fix_cycles: 0
+    ci_max_fix_cycles: 0
 monitor:
     patrol_interval_minutes: 15
     stale_threshold_minutes: 30
