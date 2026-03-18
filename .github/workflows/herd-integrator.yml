@@ -3,12 +3,16 @@ on:
   workflow_run:
     workflows: ["HerdOS Worker"]
     types: [completed]
+  check_suite:
+    types: [completed]
   pull_request_review:
     types: [submitted]
   pull_request:
     types: [closed]
   issues:
     types: [closed]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -44,6 +48,36 @@ jobs:
           herd integrator advance --run-id "$RUN_ID"
           herd integrator review --run-id "$RUN_ID"
 
+  check-ci-on-completion:
+    if: >
+      vars.HERD_ENABLED == 'true'
+      && github.event_name == 'check_suite'
+      && github.event.check_suite.conclusion == 'failure'
+      && startsWith(github.event.check_suite.head_branch, 'herd/batch/')
+    runs-on: [self-hosted, '${{ vars.HERD_RUNNER_LABEL || ''herd-worker'' }}']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.check_suite.head_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.HERD_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Check CI and dispatch fix workers
+        env:
+          HERD_RUNNER: "true"
+          GITHUB_TOKEN: ${{ secrets.HERD_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HEAD_BRANCH: ${{ github.event.check_suite.head_branch }}
+        run: |
+          BATCH=$(echo "$HEAD_BRANCH" | grep -oP 'herd/batch/\K[0-9]+')
+          if [ -n "$BATCH" ]; then
+            herd integrator check-ci --batch "$BATCH"
+          fi
+
   advance-on-close:
     if: vars.HERD_ENABLED == 'true' && github.event_name == 'issues'
     runs-on: [self-hosted, '${{ vars.HERD_RUNNER_LABEL || ''herd-worker'' }}']
@@ -58,11 +92,16 @@ jobs:
         env:
           HERD_RUNNER: "true"
           GITHUB_TOKEN: ${{ secrets.HERD_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           BATCH=$(echo "$ISSUE_BODY" | grep -oP '^\s*batch:\s*\K[0-9]+' | head -1)
           if [ -n "$BATCH" ]; then
             herd integrator advance --batch "$BATCH"
+            herd integrator review --batch "$BATCH"
           else
             echo "Not a herd issue — skipping."
           fi
@@ -119,3 +158,43 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           herd integrator cleanup --pr "$PR_NUMBER"
+
+  handle-comment:
+    if: >
+      vars.HERD_ENABLED == 'true'
+      && github.event_name == 'issue_comment'
+      && github.event.action == 'created'
+      && startsWith(github.event.comment.body, '/herd ')
+    concurrency:
+      group: herd-comment-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    runs-on: [self-hosted, '${{ vars.HERD_RUNNER_LABEL || ''herd-worker'' }}']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.HERD_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Handle comment command
+        env:
+          HERD_RUNNER: "true"
+          GITHUB_TOKEN: ${{ secrets.HERD_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          AUTHOR_LOGIN: ${{ github.event.comment.user.login }}
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          IS_PR: ${{ github.event.issue.pull_request && 'true' || 'false' }}
+        run: |
+          herd integrator handle-comment \
+            --comment-id "$COMMENT_ID" \
+            --issue-number "$ISSUE_NUMBER" \
+            --author-login "$AUTHOR_LOGIN" \
+            --author-association "$AUTHOR_ASSOCIATION" \
+            --is-pr "$IS_PR"
