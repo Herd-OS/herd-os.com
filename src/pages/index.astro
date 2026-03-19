@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout
   title="HerdOS — GitHub-native AI agent orchestration"
-  description="GitHub-native orchestration for AI coding agents. One command. Parallel workers. One reviewed PR."
+  description="HerdOS orchestrates AI coding agents through GitHub. One command. Parallel agents. One reviewed PR."
 >
   <!-- Hero Section -->
   <section class="py-24 px-4">
@@ -13,10 +13,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <img src="/logo.svg" alt="HerdOS" class="h-72" />
       </div>
       <h1 class="text-5xl sm:text-6xl font-bold mb-6 leading-tight">
-        Herd your agents.
+        One command. Parallel agents.<br />One reviewed PR.
       </h1>
       <p class="text-xl sm:text-2xl text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed">
-        GitHub-native orchestration for AI coding agents. One command. Parallel workers. One reviewed PR.
+        HerdOS orchestrates AI coding agents through GitHub. Describe a feature, walk away, and come back to a reviewed pull request ready to merge.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a
@@ -35,8 +35,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
   </section>
 
-  <!-- How It Works Section -->
+  <!-- Pain Section -->
   <section class="py-20 px-4 bg-navy-light/30">
+    <div class="max-w-3xl mx-auto text-center space-y-6">
+      <p class="text-lg text-white/70 leading-relaxed">
+        You open four terminal tabs. You assign each agent a task. You check back every ten minutes to see if anyone's stuck. You're not building — you're babysitting.
+      </p>
+      <p class="text-lg text-white/70 leading-relaxed">
+        Two agents touch the same file. You get a merge conflict. Now you're the human merge resolution layer, untangling AI-generated code you didn't write.
+      </p>
+      <p class="text-lg text-white/70 leading-relaxed">
+        An agent stalls silently. No error, no notification. You discover it an hour later, kill it, and start over. That's an hour of compute and context — gone.
+      </p>
+      <p class="text-xl text-white font-bold mt-8">
+        Coordinating AI agents shouldn't be your full-time job.
+      </p>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="py-20 px-4">
     <div class="max-w-6xl mx-auto">
       <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">How It Works</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -50,7 +68,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <code class="text-orange text-sm font-mono">herd plan 'Add dark mode support'</code>
           </div>
           <p class="text-white/60 text-sm leading-relaxed">
-            AI decomposes your feature into independent tasks
+            AI decomposes your feature into independent, parallelizable tasks
           </p>
         </div>
         <!-- Step 2 -->
@@ -60,10 +78,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
           <h3 class="text-xl font-bold mb-3">Execute</h3>
           <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
-            <code class="text-orange text-sm font-mono">Workers run in parallel on self-hosted runners</code>
+            <code class="text-orange text-sm font-mono">Workers build in parallel on isolated branches</code>
           </div>
           <p class="text-white/60 text-sm leading-relaxed">
-            Workers run in parallel on self-hosted runners, each on its own branch
+            Each worker runs on a self-hosted runner with its own branch — no contention, no coordination
           </p>
         </div>
         <!-- Step 3 -->
@@ -83,6 +101,64 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
   </section>
 
+  <!-- The Autonomous Loop Section -->
+  <section class="py-20 px-4 bg-navy-light/30">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">What happens after you walk away</h2>
+      <p class="text-white/60 text-center mb-12">The entire lifecycle runs without you.</p>
+      <div class="space-y-4">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">1</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">Workers execute tasks in parallel on self-hosted runners, each on its own branch</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">2</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">Integrator consolidates worker branches into a single batch branch</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">3</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">Merge conflicts between parallel workers are detected and auto-resolved</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">4</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">When a tier completes, the next tier is dispatched automatically via DAG-based scheduling</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">5</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">Agent reviews the consolidated PR — bugs and security issues trigger automatic fix workers</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">6</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">CI failures are detected, diagnosed, and fixed automatically</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">7</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white/70 text-sm">If a worker crashes, the Monitor detects it and redispatches with exponential backoff</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">8</div>
+          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
+            <p class="text-white font-semibold text-sm">You come back to a single PR, pre-reviewed and ready to merge</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features Grid -->
   <section class="py-20 px-4">
     <div class="max-w-6xl mx-auto">
@@ -91,34 +167,82 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="text-2xl mb-4">⚡</div>
           <h3 class="text-lg font-bold mb-2">Parallel Execution</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Multiple AI agents working simultaneously on separate branches</p>
+          <p class="text-white/60 text-sm leading-relaxed">Multiple agents work simultaneously on isolated branches. No contention, no waiting — just throughput.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="text-2xl mb-4">🐙</div>
           <h3 class="text-lg font-bold mb-2">GitHub-Native</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Issues, Actions, and PRs — no custom infrastructure needed</p>
+          <p class="text-white/60 text-sm leading-relaxed">Built on Issues, Actions, and PRs. No custom infrastructure, no databases, no daemons to run.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="text-2xl mb-4">🔄</div>
           <h3 class="text-lg font-bold mb-2">Self-Healing</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Automatic failure detection, retry with exponential backoff</p>
+          <p class="text-white/60 text-sm leading-relaxed">Crashed workers are detected and redispatched automatically with exponential backoff. No silent failures.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="text-2xl mb-4">🤝</div>
           <h3 class="text-lg font-bold mb-2">Conflict Resolution</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Automatic merge conflict handling between parallel workers</p>
+          <p class="text-white/60 text-sm leading-relaxed">When parallel agents touch overlapping code, merge conflicts are detected and resolved without human intervention.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="text-2xl mb-4">🤖</div>
           <h3 class="text-lg font-bold mb-2">Agent Review</h3>
-          <p class="text-white/60 text-sm leading-relaxed">AI reviews the batch PR before you see it</p>
+          <p class="text-white/60 text-sm leading-relaxed">An AI reviewer checks the consolidated PR for bugs, security issues, and style — before you ever see it.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">🔔</div>
-          <h3 class="text-lg font-bold mb-2">Zero Polling</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Event-driven architecture, no battery-draining daemons</p>
+          <div class="text-2xl mb-4">🔌</div>
+          <h3 class="text-lg font-bold mb-2">Agent-Agnostic</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Ships with Claude Code. Codex, Cursor, Gemini CLI, and OpenCode coming soon. The architecture supports any agent that can read a task and produce code.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section class="py-20 px-4 bg-navy-light/30">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">Built for real features</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5">
+          <div class="bg-navy rounded-lg p-4 mb-4">
+            <code class="text-orange text-sm font-mono">herd plan "Add user authentication"</code>
+          </div>
+          <ul class="text-white/60 text-sm leading-relaxed space-y-2">
+            <li>Decomposes into models, routes, and middleware across tiers</li>
+            <li>Workers build each piece in parallel on isolated branches</li>
+            <li>Integrator merges everything into one reviewed PR</li>
+          </ul>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5">
+          <div class="bg-navy rounded-lg p-4 mb-4">
+            <code class="text-orange text-sm font-mono">herd plan "Migrate from REST to GraphQL"</code>
+          </div>
+          <ul class="text-white/60 text-sm leading-relaxed space-y-2">
+            <li>Identifies all endpoints and creates parallel migration tasks</li>
+            <li>Each worker migrates a subset of routes simultaneously</li>
+            <li>Validates schema compatibility across the full surface</li>
+          </ul>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5">
+          <div class="bg-navy rounded-lg p-4 mb-4">
+            <code class="text-orange text-sm font-mono">herd plan "Upgrade React 17 to 19"</code>
+          </div>
+          <ul class="text-white/60 text-sm leading-relaxed space-y-2">
+            <li>Maps breaking changes across the entire component tree</li>
+            <li>Updates components in parallel, respecting dependency order</li>
+            <li>Runs test suites to catch regressions before you review</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gastown Heritage Section -->
+  <section class="py-16 px-4">
+    <div class="max-w-3xl mx-auto text-center border-t border-white/10 pt-16">
+      <p class="text-white/60 text-sm leading-relaxed italic">
+        Inspired by <a href="https://github.com/steveyegge/gastown" class="text-white/80 underline hover:text-white">Gastown</a>, Steve Yegge's multi-agent orchestration system. HerdOS carries forward its proven ideas — role decomposition, batch-based delivery, nondeterministic idempotence — but replaces tmux sessions, Dolt databases, and battery-draining polling daemons with GitHub Issues, Actions, and event-driven workflows. Zero infrastructure. Zero local compute.
+      </p>
     </div>
   </section>
 
@@ -132,6 +256,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div><span class="text-white/40">$</span> <span class="text-white">cd your-repo</span></div>
         <div><span class="text-white/40">$</span> <span class="text-white">herd init</span></div>
         <div><span class="text-white/40">$</span> <span class="text-white">herd plan <span class="text-orange">"Add user authentication"</span></span></div>
+        <div><span class="text-white/40">$</span> <span class="text-white">herd status --watch</span> <span class="text-white/40"># watch workers execute in real-time</span></div>
       </div>
     </div>
   </section>
@@ -140,7 +265,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <section class="py-24 px-4">
     <div class="max-w-6xl mx-auto text-center">
       <h2 class="text-3xl sm:text-4xl font-bold mb-6">Ready to herd your agents?</h2>
-      <p class="text-white/60 text-lg mb-10">Join the future of AI-assisted development</p>
+      <p class="text-white/60 text-lg mb-10">Ship features faster with parallel AI agents — no babysitting required</p>
       <a
         href="https://github.com/herd-os/herd"
         class="inline-block bg-orange hover:bg-orange-dark text-white font-semibold px-10 py-4 rounded-lg transition-colors text-lg"
