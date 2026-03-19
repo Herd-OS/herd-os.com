@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { Icon } from 'astro-icon/components';
 ---
 
 <BaseLayout
@@ -165,32 +166,32 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">Built for the AI-native workflow</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">⚡</div>
+          <div class="mb-4"><Icon name="lucide:zap" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">Parallel Execution</h3>
           <p class="text-white/60 text-sm leading-relaxed">Multiple agents work simultaneously on isolated branches. No contention, no waiting — just throughput.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">🐙</div>
+          <div class="mb-4"><Icon name="lucide:github" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">GitHub-Native</h3>
           <p class="text-white/60 text-sm leading-relaxed">Built on Issues, Actions, and PRs. No custom infrastructure, no databases, no daemons to run.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">🔄</div>
+          <div class="mb-4"><Icon name="lucide:refresh-cw" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">Self-Healing</h3>
           <p class="text-white/60 text-sm leading-relaxed">Crashed workers are detected and redispatched automatically with exponential backoff. No silent failures.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">🤝</div>
+          <div class="mb-4"><Icon name="lucide:git-merge" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">Conflict Resolution</h3>
           <p class="text-white/60 text-sm leading-relaxed">When parallel agents touch overlapping code, merge conflicts are detected and resolved without human intervention.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">🤖</div>
+          <div class="mb-4"><Icon name="lucide:bot" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">Agent Review</h3>
           <p class="text-white/60 text-sm leading-relaxed">An AI reviewer checks the consolidated PR for bugs, security issues, and style — before you ever see it.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
-          <div class="text-2xl mb-4">🔌</div>
+          <div class="mb-4"><Icon name="lucide:bell-ring" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">Agent-Agnostic</h3>
           <p class="text-white/60 text-sm leading-relaxed">Ships with Claude Code. Codex, Cursor, Gemini CLI, and OpenCode coming soon. The architecture supports any agent that can read a task and produce code.</p>
         </div>
