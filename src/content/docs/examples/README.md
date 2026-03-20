@@ -10,15 +10,15 @@ Example `.herdos.yml` files for common project setups. Copy one to your repo roo
 
 ## Examples
 
-### [solo-dev.yml](solo-dev.yml)
+### [Solo Developer](/docs/examples/solo-dev)
 
 For solo developers running HerdOS on personal projects. Minimal runner pool, no agent review (you review everything yourself), shorter timeouts. Good starting point if you're trying HerdOS for the first time.
 
-### [small-team.yml](small-team.yml)
+### [Small Team](/docs/examples/small-team)
 
 For teams of 2–5 developers. Larger worker pool, agent review enabled to catch issues before human review, conflict resolution via dispatch. Notifications go to the team lead.
 
-### [ci-heavy.yml](ci-heavy.yml)
+### [CI-Heavy](/docs/examples/ci-heavy)
 
 For projects with extensive CI pipelines. Higher fix-cycle limits so the integrator can iterate on CI failures and review feedback. Longer timeouts to accommodate complex builds.
 

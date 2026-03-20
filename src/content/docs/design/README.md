@@ -14,10 +14,10 @@ For user-facing documentation, see [`docs/`](../).
 
 | Document | Description |
 |----------|-------------|
-| [vision.md](vision.md) | The problem, the insight, positioning, lessons from Gastown |
-| [architecture.md](architecture.md) | System diagrams, data flow, component boundaries, design decisions |
-| [glossary.md](glossary.md) | Terms and naming conventions |
-| [planner.md](planner.md) | Planning philosophy, quality principles, self-contained issues |
-| [execution.md](execution.md) | Workers, Integrator, Monitor, DAG tiers, review cycles, failure modes |
-| [github-integration.md](github-integration.md) | Issues, Actions, events, runners, permissions, GitHub App |
-| [roadmap.md](roadmap.md) | v1.0 through v4 and beyond |
+| [Vision](/docs/design/vision) | The problem, the insight, positioning, lessons from Gastown |
+| [Architecture](/docs/design/architecture) | System diagrams, data flow, component boundaries, design decisions |
+| [Glossary](/docs/design/glossary) | Terms and naming conventions |
+| [Planner](/docs/design/planner) | Planning philosophy, quality principles, self-contained issues |
+| [Execution](/docs/design/execution) | Workers, Integrator, Monitor, DAG tiers, review cycles, failure modes |
+| [GitHub Integration](/docs/design/github-integration) | Issues, Actions, events, runners, permissions, GitHub App |
+| [Roadmap](/docs/design/roadmap) | v1.0 through v4 and beyond |

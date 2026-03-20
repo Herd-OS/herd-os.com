@@ -600,7 +600,7 @@ it blocks everything and can't be fixed, cancel and re-plan.
 
 ---
 
-## 11. Dispatch Model
+## 12. Dispatch Model
 
 Three actors dispatch work:
 
@@ -622,7 +622,7 @@ The user can then dispatch with `herd dispatch --batch <N>`.
 
 ---
 
-## 12. Comment Commands
+## 13. Comment Commands
 
 HerdOS supports `/herd` commands posted as comments on issues and PRs. This provides a unified entry point for both human and automated interactions.
 
