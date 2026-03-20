@@ -84,7 +84,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          if git diff --quiet; then
+          git add src/content/docs/
+
+          if git diff --cached --quiet; then
             echo "No docs changes detected, exiting."
             exit 0
           fi
@@ -96,7 +98,6 @@ jobs:
           git config user.name "herd-os[bot]"
           git config user.email "herd-os[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add src/content/docs/
           git commit -m "Sync docs from herd repo (${SHORT_SHA})"
           git push origin "$BRANCH"
 
