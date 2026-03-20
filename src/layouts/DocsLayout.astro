@@ -1,0 +1,105 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { docsNav } from '../config/docs-nav';
+import type { NavSection } from '../config/docs-nav';
+
+interface Props {
+  title: string;
+  currentSlug: string;
+}
+
+const { title, currentSlug } = Astro.props;
+---
+
+<BaseLayout title={`${title} — HerdOS Docs`} description={`HerdOS documentation: ${title}`}>
+  <!-- Mobile sidebar toggle in header -->
+  <button
+    slot="header-start"
+    id="sidebar-toggle"
+    class="md:hidden text-white/70 hover:text-white transition-colors"
+    aria-label="Toggle navigation"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <div class="max-w-6xl mx-auto px-4 py-10 flex gap-10">
+    <!-- Mobile sidebar overlay -->
+    <div id="sidebar-overlay" class="md:hidden fixed inset-0 top-16 bg-black/50 z-40 hidden"></div>
+
+    <!-- Sidebar -->
+    <nav id="sidebar" class="hidden md:block w-56 flex-shrink-0 max-md:fixed max-md:top-16 max-md:bottom-0 max-md:left-0 max-md:z-50 max-md:w-72 max-md:bg-navy max-md:p-6 max-md:overflow-y-auto max-md:shadow-2xl">
+      <div class="sticky top-24 space-y-6 max-md:static">
+        {docsNav.map((section: NavSection) => (
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-white/40 mb-2">{section.label}</h4>
+            <ul class="space-y-1">
+              {section.items.map((item) => (
+                <li>
+                  <a
+                    href={`/docs/${item.slug}`}
+                    class:list={[
+                      'block px-3 py-1.5 rounded text-sm transition-colors',
+                      currentSlug === item.slug
+                        ? 'bg-orange/10 text-orange font-medium'
+                        : 'text-white/60 hover:text-white hover:bg-white/5',
+                    ]}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </nav>
+    <!-- Content -->
+    <article class="flex-1 min-w-0 prose prose-invert prose-orange max-w-none
+      prose-headings:text-white prose-headings:font-bold
+      prose-h1:text-3xl prose-h1:mb-6
+      prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
+      prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+      prose-p:text-white/70 prose-p:leading-relaxed
+      prose-a:text-orange hover:prose-a:text-orange-dark
+      prose-strong:text-white
+      prose-code:text-orange prose-code:bg-navy-light prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+      prose-pre:bg-navy-light prose-pre:border prose-pre:border-white/10
+      prose-li:text-white/70
+      prose-table:text-white/70
+      prose-th:text-white prose-th:font-semibold
+      prose-td:border-white/10 prose-th:border-white/10">
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  const toggle = document.getElementById('sidebar-toggle');
+  const overlay = document.getElementById('sidebar-overlay');
+  const sidebar = document.getElementById('sidebar');
+
+  function openSidebar() {
+    sidebar?.classList.remove('hidden');
+    sidebar?.classList.add('block');
+    overlay?.classList.remove('hidden');
+  }
+
+  function closeSidebar() {
+    sidebar?.classList.remove('block');
+    sidebar?.classList.add('hidden');
+    overlay?.classList.add('hidden');
+  }
+
+  function toggleSidebar() {
+    if (sidebar?.classList.contains('hidden')) {
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
+  }
+
+  toggle?.addEventListener('click', toggleSidebar);
+  overlay?.addEventListener('click', closeSidebar);
+</script>

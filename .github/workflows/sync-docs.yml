@@ -1,0 +1,105 @@
+name: Sync docs from herd repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Source commit SHA (for branch naming)"
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout herd repo
+        uses: actions/checkout@v4
+
+      - name: Checkout herd-os.com repo
+        uses: actions/checkout@v4
+        with:
+          repository: Herd-OS/herd-os.com
+          token: ${{ secrets.HERD_GITHUB_TOKEN }}
+          path: herd-os.com
+
+      - name: Sync docs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DEST="herd-os.com/src/content/docs"
+
+          inject_frontmatter() {
+            local src="$1" dest="$2" title="$3" section="$4" order="$5"
+            mkdir -p "$(dirname "$dest")"
+            printf -- '---\ntitle: "%s"\nsection: "%s"\norder: %s\n---\n\n' "$title" "$section" "$order" > "$dest"
+            cat "$src" >> "$dest"
+          }
+
+          wrap_yaml() {
+            local src="$1" dest="$2" title="$3" section="$4" order="$5"
+            mkdir -p "$(dirname "$dest")"
+            printf -- '---\ntitle: "%s"\nsection: "%s"\norder: %s\n---\n\n' "$title" "$section" "$order" > "$dest"
+            # Extract leading comment block as description
+            sed -n '/^#/{ s/^# *//; p; }; /^[^#]/q' "$src" >> "$dest"
+            printf '\n```yaml\n' >> "$dest"
+            cat "$src" >> "$dest"
+            printf '\n```\n' >> "$dest"
+          }
+
+          # Markdown files with frontmatter mapping
+          inject_frontmatter docs/installation.md       "$DEST/installation.md"       "Installation"       "Getting Started" 1
+          inject_frontmatter docs/getting-started.md    "$DEST/getting-started.md"    "Getting Started"    "Getting Started" 2
+          inject_frontmatter docs/configuration.md      "$DEST/configuration.md"      "Configuration"      "Getting Started" 3
+          inject_frontmatter docs/runners.md            "$DEST/runners.md"            "Runner Setup"       "Getting Started" 4
+
+          inject_frontmatter docs/design/vision.md              "$DEST/design/vision.md"              "Vision"              "Design" 1
+          inject_frontmatter docs/design/architecture.md        "$DEST/design/architecture.md"        "Architecture"        "Design" 2
+          inject_frontmatter docs/design/glossary.md            "$DEST/design/glossary.md"            "Glossary"            "Design" 3
+          inject_frontmatter docs/design/planner.md             "$DEST/design/planner.md"             "Planner"             "Design" 4
+          inject_frontmatter docs/design/execution.md           "$DEST/design/execution.md"           "Execution"           "Design" 5
+          inject_frontmatter docs/design/github-integration.md  "$DEST/design/github-integration.md"  "GitHub Integration"  "Design" 6
+          inject_frontmatter docs/design/roadmap.md             "$DEST/design/roadmap.md"             "Roadmap"             "Design" 7
+
+          # YAML example files wrapped in markdown
+          wrap_yaml docs/examples/solo-dev.yml    "$DEST/examples/solo-dev.md"    "Solo Developer" "Examples" 1
+          wrap_yaml docs/examples/small-team.yml  "$DEST/examples/small-team.md"  "Small Team"     "Examples" 2
+          wrap_yaml docs/examples/ci-heavy.yml    "$DEST/examples/ci-heavy.md"    "CI-Heavy"       "Examples" 3
+
+      - name: Create PR if changed
+        shell: bash
+        working-directory: herd-os.com
+        env:
+          GH_TOKEN: ${{ secrets.HERD_GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          git add src/content/docs/
+
+          if git diff --cached --quiet; then
+            echo "No docs changes detected, exiting."
+            exit 0
+          fi
+
+          SHORT_SHA="${SOURCE_SHA:0:7}"
+          BRANCH="herd/sync-docs-${SHORT_SHA}"
+
+          git config user.name "herd-os[bot]"
+          git config user.email "herd-os[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git commit -m "Sync docs from herd repo (${SHORT_SHA})"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "Sync docs from herd repo (${SHORT_SHA})" \
+            --body "Automated sync of \`docs/\` from the herd CLI repo." \
+            --base main \
+            --head "$BRANCH"
