@@ -1,12 +1,10 @@
 ---
 title: "Small Team"
 section: "Examples"
-order: 2
+order: 3
 ---
 
-# Small Team Configuration
-
-HerdOS configuration optimized for teams of 2-5 with agent review enabled and automatic conflict resolution.
+HerdOS configuration for small teams (2–5 developers).
 
 ```yaml
 # HerdOS configuration for small teams (2–5 developers).
@@ -52,4 +50,5 @@ monitor:
 
 pull_requests:
   auto_merge: false                      # Team reviews PRs before merging
+
 ```

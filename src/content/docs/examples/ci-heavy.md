@@ -1,12 +1,10 @@
 ---
 title: "CI-Heavy"
 section: "Examples"
-order: 3
+order: 4
 ---
 
-# CI-Heavy Configuration
-
-HerdOS configuration for CI-intensive projects with extended timeouts, aggressive monitoring, and multiple fix cycles.
+HerdOS configuration for projects with extensive CI pipelines.
 
 ```yaml
 # HerdOS configuration for projects with extensive CI pipelines.
@@ -53,4 +51,5 @@ monitor:
 
 pull_requests:
   auto_merge: false
+
 ```
