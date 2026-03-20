@@ -1,7 +1,7 @@
 ---
 title: "Architecture"
 section: "Design"
-order: 3
+order: 2
 ---
 
 # Architecture

@@ -78,6 +78,7 @@ jobs:
         working-directory: herd-os.com
         env:
           GH_TOKEN: ${{ secrets.HERD_GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
         run: |
           set -euo pipefail
 
@@ -88,8 +89,7 @@ jobs:
             exit 0
           fi
 
-          SHORT_SHA="${{ inputs.source_sha || github.sha }}"
-          SHORT_SHA="${SHORT_SHA:0:7}"
+          SHORT_SHA="${SOURCE_SHA:0:7}"
           BRANCH="herd/sync-docs-${SHORT_SHA}"
 
           git config user.name "herd-os[bot]"

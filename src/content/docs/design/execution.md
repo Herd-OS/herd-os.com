@@ -1,7 +1,7 @@
 ---
 title: "Execution"
 section: "Design"
-order: 6
+order: 5
 ---
 
 # Execution Design

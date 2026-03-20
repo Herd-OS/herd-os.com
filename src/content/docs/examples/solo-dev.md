@@ -1,7 +1,7 @@
 ---
 title: "Solo Developer"
 section: "Examples"
-order: 2
+order: 1
 ---
 
 # Solo Developer Configuration

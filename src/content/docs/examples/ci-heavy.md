@@ -1,7 +1,7 @@
 ---
 title: "CI-Heavy"
 section: "Examples"
-order: 4
+order: 3
 ---
 
 # CI-Heavy Configuration

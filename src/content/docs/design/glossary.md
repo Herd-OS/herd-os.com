@@ -1,7 +1,7 @@
 ---
 title: "Glossary"
 section: "Design"
-order: 4
+order: 3
 ---
 
 # Glossary

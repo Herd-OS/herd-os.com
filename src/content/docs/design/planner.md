@@ -1,7 +1,7 @@
 ---
 title: "Planner"
 section: "Design"
-order: 5
+order: 4
 ---
 
 # Planner Design

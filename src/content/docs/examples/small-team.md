@@ -1,7 +1,7 @@
 ---
 title: "Small Team"
 section: "Examples"
-order: 3
+order: 2
 ---
 
 # Small Team Configuration

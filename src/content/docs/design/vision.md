@@ -1,7 +1,7 @@
 ---
 title: "Vision"
 section: "Design"
-order: 2
+order: 1
 ---
 
 # Vision
