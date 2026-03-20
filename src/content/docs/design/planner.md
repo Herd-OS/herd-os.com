@@ -1,7 +1,7 @@
 ---
 title: "Planner"
 section: "Design"
-order: 4
+order: 5
 ---
 
 # Planner Design
@@ -111,6 +111,24 @@ The agent produces a structured plan containing:
   - **Dependencies** -- references to other tasks in the plan that must complete first. These are translated to GitHub Issue numbers after issue creation.
 
 The `implementation_details`, `conventions`, and `context_from_dependencies` fields encode the research the Planner has already done, so workers do not repeat it. When creating GitHub Issues from the plan, dependency indices are translated to issue numbers, and complexity maps to estimated complexity in the issue metadata.
+
+## Automatic Repository Context
+
+The planner automatically gathers repository context and injects it into the agent's system prompt, so the agent starts each planning session with a useful understanding of the project. Context gathering is best-effort — missing files or failed commands are silently skipped, and the corresponding section is omitted from the prompt.
+
+### Context Sources
+
+| Source | Description | Character Limit |
+|--------|-------------|-----------------|
+| Directory tree | 2-level deep listing, excluding `.git`, `node_modules`, `dist`, `vendor`, `bin` | 2000 |
+| README.md | Project overview from the repository root | 2000 |
+| Tech stack manifest | First of `go.mod`, `package.json`, or `Cargo.toml` found | 2000 |
+| Git log | Last 10 commits in oneline format | 1000 |
+| Active batches | Open GitHub milestones with issue counts | 1000 |
+
+Per-section character limits prevent overwhelming the agent's context window. If a source exceeds its limit, the content is truncated.
+
+Users can provide additional project-specific context via `.herd/planner.md` role instructions (see below).
 
 ## Role Instructions
 

@@ -1,12 +1,10 @@
 ---
 title: "Solo Developer"
 section: "Examples"
-order: 1
+order: 2
 ---
 
-# Solo Developer Configuration
-
-HerdOS configuration optimized for solo developers with small runner pools and fast iteration. You review all PRs yourself, so agent review is off.
+HerdOS configuration for solo developers.
 
 ```yaml
 # HerdOS configuration for solo developers.
@@ -52,4 +50,5 @@ monitor:
 
 pull_requests:
   auto_merge: false                      # You want to review before merging
+
 ```

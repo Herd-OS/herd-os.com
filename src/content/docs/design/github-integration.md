@@ -1,7 +1,7 @@
 ---
 title: "GitHub Integration"
 section: "Design"
-order: 6
+order: 7
 ---
 
 # GitHub Integration Design
