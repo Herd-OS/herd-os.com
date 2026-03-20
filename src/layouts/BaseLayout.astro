@@ -23,10 +23,13 @@ const { title, description } = Astro.props;
   <body class="bg-navy text-white min-h-screen">
     <header class="sticky top-0 z-50 bg-navy border-b border-navy-light">
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2">
-          <img src="/logo.svg" alt="HerdOS" class="h-8" />
-          <span class="font-bold text-lg">HerdOS</span>
-        </a>
+        <div class="flex items-center gap-3">
+          <slot name="header-start" />
+          <a href="/" class="flex items-center gap-2">
+            <img src="/logo.svg" alt="HerdOS" class="h-8" />
+            <span class="font-bold text-lg">HerdOS</span>
+          </a>
+        </div>
         <nav class="flex items-center gap-6 text-sm">
           <a href="/docs/getting-started" class="text-white/70 hover:text-white transition-colors">Docs</a>
           <a href="https://github.com/herd-os/herd" class="text-white/70 hover:text-white transition-colors">GitHub</a>
