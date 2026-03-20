@@ -21,7 +21,6 @@ export const docsNav: NavSection[] = [
   {
     label: 'Design',
     items: [
-      { title: 'Overview', slug: 'design/README' },
       { title: 'Vision', slug: 'design/vision' },
       { title: 'Architecture', slug: 'design/architecture' },
       { title: 'Glossary', slug: 'design/glossary' },
@@ -34,7 +33,6 @@ export const docsNav: NavSection[] = [
   {
     label: 'Examples',
     items: [
-      { title: 'Overview', slug: 'examples/README' },
       { title: 'Solo Developer', slug: 'examples/solo-dev' },
       { title: 'Small Team', slug: 'examples/small-team' },
       { title: 'CI-Heavy', slug: 'examples/ci-heavy' },
