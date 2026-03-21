@@ -156,7 +156,9 @@ const { title, currentSlug } = Astro.props;
         if (!pre) return;
         const div = document.createElement('div');
         div.className = 'mermaid';
-        div.textContent = codeEl.textContent || '';
+        const raw = codeEl.textContent || '';
+        // Escape '1. ', '2. ' etc. so Mermaid's markdown parser doesn't treat them as list items
+        div.textContent = raw.replace(/(\d+)\. /g, '$1\\. ');
         pre.replaceWith(div);
       });
 
