@@ -135,7 +135,7 @@ const { title, currentSlug } = Astro.props;
         startOnLoad: false,
         theme: 'dark',
         flowchart: {
-          padding: 16,
+          padding: 30,
           wrappingWidth: 200,
           useMaxWidth: true,
         },
@@ -226,5 +226,13 @@ const { title, currentSlug } = Astro.props;
   .mermaid svg {
     max-width: 100%;
     height: auto;
+  }
+  .mermaid .nodeLabel,
+  .mermaid .cluster-label .nodeLabel {
+    overflow: visible !important;
+    white-space: normal;
+  }
+  .mermaid foreignObject {
+    overflow: visible;
   }
 </style>
