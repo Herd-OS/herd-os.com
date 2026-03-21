@@ -134,21 +134,6 @@ const { title, currentSlug } = Astro.props;
       mermaid.initialize({
         startOnLoad: false,
         theme: 'dark',
-        themeVariables: {
-          primaryColor: '#ee7926',
-          primaryTextColor: '#fefefe',
-          primaryBorderColor: '#ee7926',
-          lineColor: '#ee7926',
-          secondaryColor: '#1e2d3d',
-          tertiaryColor: '#16202c',
-          mainBkg: '#1e2d3d',
-          nodeBorder: '#ee7926',
-          clusterBkg: '#16202c',
-          clusterBorder: '#ee7926',
-          titleColor: '#fefefe',
-          edgeLabelBackground: '#1e2d3d',
-          nodeTextColor: '#fefefe',
-        },
       });
 
       codeBlocks.forEach((codeEl) => {
