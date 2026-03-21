@@ -109,44 +109,61 @@ const { title, currentSlug } = Astro.props;
     const codeBlocks = document.querySelectorAll('pre code.language-mermaid');
     if (codeBlocks.length === 0) return;
 
-    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
-
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      themeVariables: {
-        primaryColor: '#ee7926',
-        primaryTextColor: '#fefefe',
-        primaryBorderColor: '#ee7926',
-        lineColor: '#ee7926',
-        secondaryColor: '#1e2d3d',
-        tertiaryColor: '#16202c',
-        mainBkg: '#1e2d3d',
-        nodeBorder: '#ee7926',
-        clusterBkg: '#16202c',
-        clusterBorder: '#ee7926',
-        titleColor: '#fefefe',
-        edgeLabelBackground: '#1e2d3d',
-        nodeTextColor: '#fefefe',
-      },
-    });
-
+    // Preserve original <pre> elements for fallback on error
+    const originals = new Map<Element, { pre: Element; parent: Node; next: Node | null }>();
     codeBlocks.forEach((codeEl) => {
       const pre = codeEl.parentElement;
-      if (!pre) return;
-      const div = document.createElement('div');
-      div.className = 'mermaid';
-      div.textContent = codeEl.textContent || '';
-      pre.replaceWith(div);
+      if (!pre || !pre.parentNode) return;
+      originals.set(pre, { pre: pre.cloneNode(true) as Element, parent: pre.parentNode, next: pre.nextSibling });
     });
 
-    await mermaid.run();
+    try {
+      const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs');
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#ee7926',
+          primaryTextColor: '#fefefe',
+          primaryBorderColor: '#ee7926',
+          lineColor: '#ee7926',
+          secondaryColor: '#1e2d3d',
+          tertiaryColor: '#16202c',
+          mainBkg: '#1e2d3d',
+          nodeBorder: '#ee7926',
+          clusterBkg: '#16202c',
+          clusterBorder: '#ee7926',
+          titleColor: '#fefefe',
+          edgeLabelBackground: '#1e2d3d',
+          nodeTextColor: '#fefefe',
+        },
+      });
+
+      codeBlocks.forEach((codeEl) => {
+        const pre = codeEl.parentElement;
+        if (!pre) return;
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = codeEl.textContent || '';
+        pre.replaceWith(div);
+      });
+
+      await mermaid.run();
+    } catch (e) {
+      console.error('Mermaid rendering failed, restoring original code blocks:', e);
+      // Restore original <pre> elements so users can still see the diagram source
+      document.querySelectorAll('.mermaid').forEach((div) => div.remove());
+      originals.forEach(({ pre, parent, next }) => {
+        parent.insertBefore(pre, next);
+      });
+    }
   }
 
   initMermaid();
 </script>
 
-<style>
+<style is:global>
   .mermaid {
     background: transparent;
     text-align: center;
