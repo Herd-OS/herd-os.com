@@ -117,6 +117,17 @@ const { title, currentSlug } = Astro.props;
       originals.set(pre, { pre: pre.cloneNode(true) as Element, parent: pre.parentNode, next: pre.nextSibling });
     });
 
+    // Insert loading spinners next to each hidden pre block
+    const spinners: HTMLElement[] = [];
+    codeBlocks.forEach((codeEl) => {
+      const pre = codeEl.parentElement;
+      if (!pre || !pre.parentNode) return;
+      const spinner = document.createElement('div');
+      spinner.className = 'mermaid-loading';
+      pre.parentNode.insertBefore(spinner, pre.nextSibling);
+      spinners.push(spinner);
+    });
+
     try {
       const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs');
 
@@ -150,12 +161,18 @@ const { title, currentSlug } = Astro.props;
       });
 
       await mermaid.run();
+      spinners.forEach((s) => s.remove());
     } catch (e) {
       console.error('Mermaid rendering failed, restoring original code blocks:', e);
+      spinners.forEach((s) => s.remove());
       // Restore original <pre> elements so users can still see the diagram source
       document.querySelectorAll('.mermaid').forEach((div) => div.remove());
       originals.forEach(({ pre, parent, next }) => {
         parent.insertBefore(pre, next);
+        (pre as HTMLElement).removeAttribute('data-language');
+        (pre as HTMLElement).style.visibility = 'visible';
+        (pre as HTMLElement).style.height = 'auto';
+        (pre as HTMLElement).style.overflow = 'visible';
       });
     }
   }
@@ -164,6 +181,36 @@ const { title, currentSlug } = Astro.props;
 </script>
 
 <style is:global>
+  pre[data-language="mermaid"] {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mermaid-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+    margin: 1.5rem 0;
+  }
+
+  .mermaid-loading::after {
+    content: '';
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #1e2d3d;
+    border-top-color: #ee7926;
+    border-radius: 50%;
+    animation: mermaid-spin 0.8s linear infinite;
+  }
+
+  @keyframes mermaid-spin {
+    to { transform: rotate(360deg); }
+  }
+
   .mermaid {
     background: transparent;
     text-align: center;
