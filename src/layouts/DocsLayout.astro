@@ -106,7 +106,7 @@ const { title, currentSlug } = Astro.props;
 
 <script>
   async function initMermaid() {
-    const codeBlocks = document.querySelectorAll('pre code.language-mermaid');
+    const codeBlocks = document.querySelectorAll('pre[data-language="mermaid"] > code');
     if (codeBlocks.length === 0) return;
 
     // Preserve original <pre> elements for fallback on error
