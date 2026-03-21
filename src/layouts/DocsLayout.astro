@@ -169,6 +169,7 @@ const { title, currentSlug } = Astro.props;
       document.querySelectorAll('.mermaid').forEach((div) => div.remove());
       originals.forEach(({ pre, parent, next }) => {
         parent.insertBefore(pre, next);
+        (pre as HTMLElement).removeAttribute('data-language');
         (pre as HTMLElement).style.visibility = 'visible';
         (pre as HTMLElement).style.height = 'auto';
         (pre as HTMLElement).style.overflow = 'visible';
