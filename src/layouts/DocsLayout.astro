@@ -134,6 +134,11 @@ const { title, currentSlug } = Astro.props;
       mermaid.initialize({
         startOnLoad: false,
         theme: 'dark',
+        flowchart: {
+          padding: 16,
+          wrappingWidth: 200,
+          useMaxWidth: true,
+        },
         themeVariables: {
           primaryColor: '#ee7926',
           primaryTextColor: '#fefefe',
@@ -144,7 +149,7 @@ const { title, currentSlug } = Astro.props;
           mainBkg: '#1e2d3d',
           nodeBorder: '#ee7926',
           clusterBkg: '#16202c',
-          clusterBorder: '#ee7926',
+          clusterBorder: '#fefefe',
           titleColor: '#fefefe',
           edgeLabelBackground: '#1e2d3d',
           nodeTextColor: '#fefefe',
