@@ -75,7 +75,7 @@ function TerminalPhase({ onDone, autoStart }) {
   const [jsonLines, setJsonLines] = useState([]);
   const [showJson, setShowJson] = useState(false);
   const [showProceed, setShowProceed] = useState(false);
-  const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const t = setInterval(() => setCursor(c => !c), 530);
@@ -87,7 +87,9 @@ function TerminalPhase({ onDone, autoStart }) {
   }, [autoStart]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [ccLines, jsonLines, showProceed]);
 
   const addCC = useCallback(async (role, text, delayAfter = 120) => {
@@ -205,7 +207,7 @@ function TerminalPhase({ onDone, autoStart }) {
             </div>
 
             {/* conversation */}
-            <div style={{ padding: "10px 12px", maxHeight: 240, overflowY: "auto" }}>
+            <div ref={scrollRef} style={{ padding: "10px 12px", maxHeight: 240, overflowY: "auto" }}>
               {/* typing indicator before first message */}
               {ccLines.length === 0 && (
                 <div style={{ marginBottom: 10 }}>
@@ -256,7 +258,6 @@ function TerminalPhase({ onDone, autoStart }) {
                 </div>
               )}
 
-              <div ref={bottomRef} />
             </div>
           </div>
         )}
@@ -564,7 +565,8 @@ export default function HerdDemo() {
       border: `1px solid ${g.border}`,
       overflow: "hidden",
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-      maxWidth: 680,
+      width: 680,
+      maxWidth: "100%",
       margin: "0 auto",
       display: "flex",
       flexDirection: "column",
