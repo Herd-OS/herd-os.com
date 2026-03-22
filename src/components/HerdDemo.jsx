@@ -75,7 +75,7 @@ function TerminalPhase({ onDone, autoStart }) {
   const [jsonLines, setJsonLines] = useState([]);
   const [showJson, setShowJson] = useState(false);
   const [showProceed, setShowProceed] = useState(false);
-  const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const t = setInterval(() => setCursor(c => !c), 530);
@@ -87,7 +87,9 @@ function TerminalPhase({ onDone, autoStart }) {
   }, [autoStart]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [ccLines, jsonLines, showProceed]);
 
   const addCC = useCallback(async (role, text, delayAfter = 120) => {
@@ -175,7 +177,7 @@ function TerminalPhase({ onDone, autoStart }) {
         {stage === "cc-open" && <span style={{ fontSize: 10, color: g.dim, fontFamily: "monospace" }}>agent</span>}
       </div>
 
-      <div style={{ flex: 1, padding: "14px 16px", overflowY: "auto", fontFamily: "monospace", fontSize: 12.5, lineHeight: 1.55 }}>
+      <div className="herd-no-scrollbar" style={{ flex: 1, padding: "14px 16px", overflowY: "auto", fontFamily: "monospace", fontSize: 12.5, lineHeight: 1.55 }}>
 
         {/* shell prompt + herd plan */}
         {stage !== "idle" && (
@@ -205,7 +207,7 @@ function TerminalPhase({ onDone, autoStart }) {
             </div>
 
             {/* conversation */}
-            <div style={{ padding: "10px 12px", maxHeight: 240, overflowY: "auto" }}>
+            <div ref={scrollRef} className="herd-no-scrollbar" style={{ padding: "10px 12px", maxHeight: 240, overflowY: "auto" }}>
               {/* typing indicator before first message */}
               {ccLines.length === 0 && (
                 <div style={{ marginBottom: 10 }}>
@@ -237,7 +239,7 @@ function TerminalPhase({ onDone, autoStart }) {
               {showJson && (
                 <div style={{ marginTop: 8, marginBottom: 10 }}>
                   <div style={{ color: g.dim, fontSize: 10, marginBottom: 4 }}>writing .herd/plan.json</div>
-                  <div style={{ background: "#0d1117", borderRadius: 4, padding: "8px 10px", border: `1px solid ${g.border}`, maxHeight: 140, overflowY: "auto" }}>
+                  <div className="herd-no-scrollbar" style={{ background: "#0d1117", borderRadius: 4, padding: "8px 10px", border: `1px solid ${g.border}`, maxHeight: 140, overflowY: "auto" }}>
                     {jsonLines.map((line, i) => (
                       <div key={i} style={{ color: jsonColor(line), fontSize: 11, lineHeight: 1.5 }}>{line}</div>
                     ))}
@@ -256,7 +258,6 @@ function TerminalPhase({ onDone, autoStart }) {
                 </div>
               )}
 
-              <div ref={bottomRef} />
             </div>
           </div>
         )}
@@ -274,7 +275,7 @@ const ISSUES = [
   { id: 4, num: 45, tier: 2, title: "Update Storybook stories for dark mode" },
 ];
 
-function GitHubPhase({ onReplay, autoStart }) {
+function GitHubPhase({ onReplay, onDone: notifyDone, autoStart }) {
   const [tab, setTab] = useState("issues");
   const [issueStates, setIssueStates] = useState({});
   const [visibleIds, setVisibleIds] = useState(new Set());
@@ -349,10 +350,11 @@ function GitHubPhase({ onReplay, autoStart }) {
       setReviewed(true);
       await sleep(600);
       setDone(true);
+      if (notifyDone) notifyDone();
     };
     go();
     return () => { cancelled = true; };
-  }, [autoStart]);
+  }, [autoStart, notifyDone]);
 
   const closedCount = Object.values(issueStates).filter(s => s === "closed").length;
   const runningCount = runs.filter(r => r.status === "running").length;
@@ -504,11 +506,6 @@ function GitHubPhase({ onReplay, autoStart }) {
         <span style={{ color: g.dim, fontSize: 11 }}>
           {done ? "PR #142 is ready. Your turn." : "Workers running..."}
         </span>
-        {done && (
-          <button onClick={onReplay} style={{ background: "transparent", color: g.text, border: `1px solid ${g.mutedBorder}`, borderRadius: 6, padding: "4px 14px", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
-            Replay
-          </button>
-        )}
       </div>
     </div>
   );
@@ -521,6 +518,7 @@ export default function HerdDemo() {
   const [ghKey, setGhKey] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [githubStarted, setGithubStarted] = useState(false);
+  const [demoDone, setDemoDone] = useState(false);
 
   const goToGitHub = useCallback(() => {
     setGithubStarted(true);
@@ -531,9 +529,12 @@ export default function HerdDemo() {
     setTermKey(k => k + 1);
     setGhKey(k => k + 1);
     setGithubStarted(false);
+    setDemoDone(false);
     setPlaying(true);
     setActiveTab("terminal");
   }, []);
+
+  const handleDemoDone = useCallback(() => setDemoDone(true), []);
 
   const start = useCallback(() => setPlaying(true), []);
 
@@ -564,7 +565,8 @@ export default function HerdDemo() {
       border: `1px solid ${g.border}`,
       overflow: "hidden",
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-      maxWidth: 680,
+      width: 920,
+      maxWidth: "100%",
       margin: "0 auto",
       display: "flex",
       flexDirection: "column",
@@ -609,6 +611,17 @@ export default function HerdDemo() {
             </button>
           );
         })}
+        {demoDone && (
+          <button onClick={replay} style={{
+            marginLeft: "auto", marginRight: 8,
+            background: "transparent", color: g.text,
+            border: `1px solid ${g.mutedBorder}`, borderRadius: 6,
+            padding: "4px 14px", fontSize: 11, cursor: "pointer",
+            fontFamily: "inherit", animation: "herd-fade 0.3s ease",
+          }}>
+            Replay
+          </button>
+        )}
       </div>
 
       {/* both phases always mounted, toggled by display */}
@@ -616,7 +629,7 @@ export default function HerdDemo() {
         <TerminalPhase key={termKey} onDone={goToGitHub} autoStart={playing} />
       </div>
       <div style={{ display: activeTab === "github" ? "flex" : "none", flexDirection: "column", height: 460 }}>
-        <GitHubPhase key={ghKey} onReplay={replay} autoStart={githubStarted} />
+        <GitHubPhase key={ghKey} onReplay={replay} onDone={handleDemoDone} autoStart={githubStarted} />
       </div>
 
       {/* play overlay — only on terminal tab, before playing */}
@@ -652,6 +665,8 @@ export default function HerdDemo() {
       <style>{`
         @keyframes herd-spin { to { transform: rotate(360deg); } }
         @keyframes herd-fade { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
+        .herd-no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .herd-no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );

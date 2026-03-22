@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Icon } from 'astro-icon/components';
+import HerdDemo from '../components/HerdDemo.jsx';
 ---
 
 <BaseLayout
@@ -33,6 +34,13 @@ import { Icon } from 'astro-icon/components';
           View on GitHub
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- Demo Section -->
+  <section class="pb-12 px-4">
+    <div class="flex justify-center">
+      <HerdDemo client:visible />
     </div>
   </section>
 
