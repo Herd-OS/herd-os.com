@@ -69,35 +69,25 @@ import HerdDemo from '../components/HerdDemo.jsx';
       <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">What the system handles for you</h2>
       <p class="text-white/60 text-center mb-12">You describe a feature. The system handles everything else.</p>
       <div class="flex flex-col gap-4 max-w-[640px] mx-auto text-left">
-        <div class="flex flex-row items-start gap-3 text-left">
+        <div class="bg-navy-light rounded-xl p-4 border border-white/5 flex items-start gap-3 text-left">
           <Icon name="lucide:git-branch" class="w-4 h-4 text-orange shrink-0 mt-[3px]" />
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">Workers execute tasks in parallel on self-hosted runners, each on an isolated branch — no contention, no coordination overhead</p>
-          </div>
+          <span class="text-white/70 text-sm">Workers execute tasks in parallel on self-hosted runners, each on an isolated branch — no contention, no coordination overhead</span>
         </div>
-        <div class="flex flex-row items-start gap-3 text-left">
+        <div class="bg-navy-light rounded-xl p-4 border border-white/5 flex items-start gap-3 text-left">
           <Icon name="lucide:git-merge" class="w-4 h-4 text-orange shrink-0 mt-[3px]" />
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">The integrator consolidates branches and auto-resolves merge conflicts between parallel workers</p>
-          </div>
+          <span class="text-white/70 text-sm">The integrator consolidates branches and auto-resolves merge conflicts between parallel workers</span>
         </div>
-        <div class="flex flex-row items-start gap-3 text-left">
+        <div class="bg-navy-light rounded-xl p-4 border border-white/5 flex items-start gap-3 text-left">
           <Icon name="lucide:workflow" class="w-4 h-4 text-orange shrink-0 mt-[3px]" />
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">DAG-based scheduling dispatches the next tier of tasks automatically as dependencies complete</p>
-          </div>
+          <span class="text-white/70 text-sm">DAG-based scheduling dispatches the next tier of tasks automatically as dependencies complete</span>
         </div>
-        <div class="flex flex-row items-start gap-3 text-left">
+        <div class="bg-navy-light rounded-xl p-4 border border-white/5 flex items-start gap-3 text-left">
           <Icon name="lucide:refresh-cw" class="w-4 h-4 text-orange shrink-0 mt-[3px]" />
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">The monitor detects crashed or stalled workers and redispatches them with exponential backoff</p>
-          </div>
+          <span class="text-white/70 text-sm">The monitor detects crashed or stalled workers and redispatches them with exponential backoff</span>
         </div>
-        <div class="flex flex-row items-start gap-3 text-left">
+        <div class="bg-navy-light rounded-xl p-4 border border-white/5 flex items-start gap-3 text-left">
           <Icon name="lucide:shield-check" class="w-4 h-4 text-orange shrink-0 mt-[3px]" />
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">An agent reviews the consolidated PR for bugs and security issues — you come back to a single PR ready to merge</p>
-          </div>
+          <span class="text-white/70 text-sm">An agent reviews the consolidated PR for bugs and security issues — you come back to a single PR ready to merge</span>
         </div>
       </div>
     </div>
