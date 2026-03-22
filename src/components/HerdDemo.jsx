@@ -177,7 +177,7 @@ function TerminalPhase({ onDone, autoStart }) {
         {stage === "cc-open" && <span style={{ fontSize: 10, color: g.dim, fontFamily: "monospace" }}>agent</span>}
       </div>
 
-      <div style={{ flex: 1, padding: "14px 16px", overflowY: "auto", fontFamily: "monospace", fontSize: 12.5, lineHeight: 1.55 }}>
+      <div className="herd-no-scrollbar" style={{ flex: 1, padding: "14px 16px", overflowY: "auto", fontFamily: "monospace", fontSize: 12.5, lineHeight: 1.55 }}>
 
         {/* shell prompt + herd plan */}
         {stage !== "idle" && (
@@ -207,7 +207,7 @@ function TerminalPhase({ onDone, autoStart }) {
             </div>
 
             {/* conversation */}
-            <div ref={scrollRef} style={{ padding: "10px 12px", maxHeight: 240, overflowY: "auto" }}>
+            <div ref={scrollRef} className="herd-no-scrollbar" style={{ padding: "10px 12px", maxHeight: 240, overflowY: "auto" }}>
               {/* typing indicator before first message */}
               {ccLines.length === 0 && (
                 <div style={{ marginBottom: 10 }}>
@@ -239,7 +239,7 @@ function TerminalPhase({ onDone, autoStart }) {
               {showJson && (
                 <div style={{ marginTop: 8, marginBottom: 10 }}>
                   <div style={{ color: g.dim, fontSize: 10, marginBottom: 4 }}>writing .herd/plan.json</div>
-                  <div style={{ background: "#0d1117", borderRadius: 4, padding: "8px 10px", border: `1px solid ${g.border}`, maxHeight: 140, overflowY: "auto" }}>
+                  <div className="herd-no-scrollbar" style={{ background: "#0d1117", borderRadius: 4, padding: "8px 10px", border: `1px solid ${g.border}`, maxHeight: 140, overflowY: "auto" }}>
                     {jsonLines.map((line, i) => (
                       <div key={i} style={{ color: jsonColor(line), fontSize: 11, lineHeight: 1.5 }}>{line}</div>
                     ))}
@@ -654,6 +654,8 @@ export default function HerdDemo() {
       <style>{`
         @keyframes herd-spin { to { transform: rotate(360deg); } }
         @keyframes herd-fade { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
+        .herd-no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .herd-no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );
