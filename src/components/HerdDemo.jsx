@@ -565,7 +565,7 @@ export default function HerdDemo() {
       border: `1px solid ${g.border}`,
       overflow: "hidden",
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-      width: 680,
+      width: 920,
       maxWidth: "100%",
       margin: "0 auto",
       display: "flex",
