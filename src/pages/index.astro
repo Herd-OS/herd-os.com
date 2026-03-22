@@ -63,106 +63,40 @@ import HerdDemo from '../components/HerdDemo.jsx';
     </div>
   </section>
 
-  <!-- How It Works Section -->
-  <section class="py-20 px-4">
-    <div class="max-w-6xl mx-auto">
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">How It Works</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8" data-reveal-group="how">
-        <!-- Step 1 -->
-        <div class="text-center transition-all duration-[1000ms] ease-out" data-reveal>
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange text-white font-bold text-xl mb-6">
-            1
-          </div>
-          <h3 class="text-xl font-bold mb-3">Plan</h3>
-          <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
-            <code class="text-orange text-sm font-mono">herd plan 'Add dark mode support'</code>
-          </div>
-          <p class="text-white/60 text-sm leading-relaxed">
-            AI decomposes your feature into independent, parallelizable tasks
-          </p>
-        </div>
-        <!-- Step 2 -->
-        <div class="text-center transition-all duration-[1000ms] ease-out" data-reveal>
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange text-white font-bold text-xl mb-6">
-            2
-          </div>
-          <h3 class="text-xl font-bold mb-3">Execute</h3>
-          <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
-            <code class="text-orange text-sm font-mono">Workers build in parallel on isolated branches</code>
-          </div>
-          <p class="text-white/60 text-sm leading-relaxed">
-            Each worker runs on a self-hosted runner with its own branch — no contention, no coordination
-          </p>
-        </div>
-        <!-- Step 3 -->
-        <div class="text-center transition-all duration-[1000ms] ease-out" data-reveal>
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange text-white font-bold text-xl mb-6">
-            3
-          </div>
-          <h3 class="text-xl font-bold mb-3">Review</h3>
-          <div class="bg-navy-light rounded-lg p-4 mb-4 text-left">
-            <code class="text-orange text-sm font-mono">gh pr view --web</code>
-          </div>
-          <p class="text-white/60 text-sm leading-relaxed">
-            Changes consolidate into a single PR, agent-reviewed and ready for you
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- The Autonomous Loop Section -->
+  <!-- What the system handles for you -->
   <section class="py-20 px-4 bg-navy-light/30">
     <div class="max-w-4xl mx-auto">
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">What happens after you walk away</h2>
-      <p class="text-white/60 text-center mb-12">The entire lifecycle runs without you.</p>
-      <div class="space-y-4" data-reveal-group="walk">
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">1</div>
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">What the system handles for you</h2>
+      <p class="text-white/60 text-center mb-12">You describe a feature. The system handles everything else.</p>
+      <div class="space-y-4">
+        <div class="flex items-start gap-4">
+          <span class="text-orange mt-2 text-lg leading-none">•</span>
           <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">Workers execute tasks in parallel on self-hosted runners, each on its own branch</p>
+            <p class="text-white/70 text-sm">Workers execute tasks in parallel on self-hosted runners, each on an isolated branch — no contention, no coordination overhead</p>
           </div>
         </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">2</div>
+        <div class="flex items-start gap-4">
+          <span class="text-orange mt-2 text-lg leading-none">•</span>
           <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">Integrator consolidates worker branches into a single batch branch</p>
+            <p class="text-white/70 text-sm">The integrator consolidates branches and auto-resolves merge conflicts between parallel workers</p>
           </div>
         </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">3</div>
+        <div class="flex items-start gap-4">
+          <span class="text-orange mt-2 text-lg leading-none">•</span>
           <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">Merge conflicts between parallel workers are detected and auto-resolved</p>
+            <p class="text-white/70 text-sm">DAG-based scheduling dispatches the next tier of tasks automatically as dependencies complete</p>
           </div>
         </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">4</div>
+        <div class="flex items-start gap-4">
+          <span class="text-orange mt-2 text-lg leading-none">•</span>
           <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">When a tier completes, the next tier is dispatched automatically via DAG-based scheduling</p>
+            <p class="text-white/70 text-sm">The monitor detects crashed or stalled workers and redispatches them with exponential backoff</p>
           </div>
         </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">5</div>
+        <div class="flex items-start gap-4">
+          <span class="text-orange mt-2 text-lg leading-none">•</span>
           <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">Agent reviews the consolidated PR — bugs and security issues trigger automatic fix workers</p>
-          </div>
-        </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">6</div>
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">CI failures are detected, diagnosed, and fixed automatically</p>
-          </div>
-        </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">7</div>
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white/70 text-sm">If a worker crashes, the Monitor detects it and redispatches with exponential backoff</p>
-          </div>
-        </div>
-        <div class="flex items-start gap-4 transition-all duration-[500ms] ease-out" data-reveal>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange text-white font-bold text-sm flex items-center justify-center mt-1">8</div>
-          <div class="bg-navy-light rounded-xl p-4 flex-1 border border-white/5">
-            <p class="text-white font-semibold text-sm">You come back to a single PR, pre-reviewed and ready to merge</p>
+            <p class="text-white/70 text-sm">An agent reviews the consolidated PR for bugs and security issues — you come back to a single PR ready to merge</p>
           </div>
         </div>
       </div>
@@ -202,46 +136,58 @@ import HerdDemo from '../components/HerdDemo.jsx';
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="mb-4"><Icon name="lucide:plug" class="size-8 text-orange" /></div>
           <h3 class="text-lg font-bold mb-2">Agent-Agnostic</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Ships with Claude Code. Codex, Cursor, Gemini CLI, and OpenCode coming soon. The architecture supports any agent that can read a task and produce code.</p>
+          <p class="text-white/60 text-sm leading-relaxed">Claude Code is the first-class supported agent today. The architecture supports any agent that can read a task and produce code — Codex, Gemini CLI, and others are on the roadmap.</p>
+        </div>
+        <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
+          <div class="mb-4"><Icon name="lucide:shield-check" class="size-8 text-orange" /></div>
+          <h3 class="text-lg font-bold mb-2">You stay in control</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Workers run autonomously, but nothing merges without your approval. You review the PR, you decide what ships.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Use Cases Section -->
+  <!-- Who this is for -->
   <section class="py-20 px-4 bg-navy-light/30">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12">Who this is for</h2>
+      <div class="space-y-4 text-lg text-white/70 leading-relaxed">
+        <div class="flex items-start gap-3">
+          <span class="text-orange mt-1">•</span>
+          <p>Solo developers using AI coding agents who want to parallelize work without managing multiple terminals</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-orange mt-1">•</span>
+          <p>Small teams coordinating agents across a shared codebase</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-orange mt-1">•</span>
+          <p>Anyone already on GitHub who wants agent orchestration without new infrastructure to deploy or maintain</p>
+        </div>
+      </div>
+      <p class="text-white/40 text-sm mt-8 text-center">Not a fit if: HerdOS requires self-hosted GitHub Actions runners. If you're not on GitHub or can't run self-hosted runners, it's not the right tool yet.</p>
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section class="py-20 px-4">
     <div class="max-w-6xl mx-auto">
       <h2 class="text-3xl sm:text-4xl font-bold text-center mb-16">Built for real features</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-navy-light rounded-xl p-6 border border-white/5">
-          <div class="bg-navy rounded-lg p-4 mb-4">
+          <div class="bg-navy rounded-lg p-4">
             <code class="text-orange text-sm font-mono">herd plan "Add user authentication"</code>
           </div>
-          <ul class="text-white/60 text-sm leading-relaxed space-y-2">
-            <li>Decomposes into models, routes, and middleware across tiers</li>
-            <li>Workers build each piece in parallel on isolated branches</li>
-            <li>Integrator merges everything into one reviewed PR</li>
-          </ul>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5">
-          <div class="bg-navy rounded-lg p-4 mb-4">
+          <div class="bg-navy rounded-lg p-4">
             <code class="text-orange text-sm font-mono">herd plan "Migrate from REST to GraphQL"</code>
           </div>
-          <ul class="text-white/60 text-sm leading-relaxed space-y-2">
-            <li>Identifies all endpoints and creates parallel migration tasks</li>
-            <li>Each worker migrates a subset of routes simultaneously</li>
-            <li>Validates schema compatibility across the full surface</li>
-          </ul>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5">
-          <div class="bg-navy rounded-lg p-4 mb-4">
+          <div class="bg-navy rounded-lg p-4">
             <code class="text-orange text-sm font-mono">herd plan "Upgrade React 17 to 19"</code>
           </div>
-          <ul class="text-white/60 text-sm leading-relaxed space-y-2">
-            <li>Maps breaking changes across the entire component tree</li>
-            <li>Updates components in parallel, respecting dependency order</li>
-            <li>Runs test suites to catch regressions before you review</li>
-          </ul>
         </div>
       </div>
     </div>
@@ -267,6 +213,9 @@ import HerdDemo from '../components/HerdDemo.jsx';
         <div><span class="text-white/40">$</span> <span class="text-white">herd init</span></div>
         <div><span class="text-white/40">$</span> <span class="text-white">herd plan <span class="text-orange">"Add user authentication"</span></span></div>
         <div><span class="text-white/40">$</span> <span class="text-white">herd status --watch</span> <span class="text-white/40"># watch workers execute in real-time</span></div>
+      </div>
+      <div class="max-w-2xl mx-auto mt-6 bg-orange/10 border border-orange/30 rounded-xl p-4 text-sm text-white/70">
+        <p><span class="text-orange font-semibold">Note:</span> HerdOS runs workers on self-hosted GitHub Actions runners. You'll need at least one runner set up before dispatching. <a href="/docs/runners" class="text-orange underline hover:text-orange-dark">See the runner setup guide →</a></p>
       </div>
     </div>
   </section>
@@ -315,14 +264,12 @@ import HerdDemo from '../components/HerdDemo.jsx';
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const group = entry.target;
-          const type = group.getAttribute('data-reveal-group');
-          const delay = type === 'how' ? 1000 : 500;
           const cards = group.querySelectorAll('[data-reveal]');
 
           cards.forEach((card, i) => {
             setTimeout(() => {
               card.classList.add('is-visible');
-            }, i * delay);
+            }, i * 500);
           });
 
           groupObserver.unobserve(group);
