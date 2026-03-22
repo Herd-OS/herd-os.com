@@ -134,11 +134,6 @@ const { title, currentSlug } = Astro.props;
       mermaid.initialize({
         startOnLoad: false,
         theme: 'dark',
-        flowchart: {
-          padding: 30,
-          wrappingWidth: 200,
-          useMaxWidth: true,
-        },
       });
 
       codeBlocks.forEach((codeEl) => {
