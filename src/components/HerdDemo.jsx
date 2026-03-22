@@ -275,7 +275,7 @@ const ISSUES = [
   { id: 4, num: 45, tier: 2, title: "Update Storybook stories for dark mode" },
 ];
 
-function GitHubPhase({ onReplay, autoStart }) {
+function GitHubPhase({ onReplay, onDone: notifyDone, autoStart }) {
   const [tab, setTab] = useState("issues");
   const [issueStates, setIssueStates] = useState({});
   const [visibleIds, setVisibleIds] = useState(new Set());
@@ -350,10 +350,11 @@ function GitHubPhase({ onReplay, autoStart }) {
       setReviewed(true);
       await sleep(600);
       setDone(true);
+      if (notifyDone) notifyDone();
     };
     go();
     return () => { cancelled = true; };
-  }, [autoStart]);
+  }, [autoStart, notifyDone]);
 
   const closedCount = Object.values(issueStates).filter(s => s === "closed").length;
   const runningCount = runs.filter(r => r.status === "running").length;
@@ -505,11 +506,6 @@ function GitHubPhase({ onReplay, autoStart }) {
         <span style={{ color: g.dim, fontSize: 11 }}>
           {done ? "PR #142 is ready. Your turn." : "Workers running..."}
         </span>
-        {done && (
-          <button onClick={onReplay} style={{ background: "transparent", color: g.text, border: `1px solid ${g.mutedBorder}`, borderRadius: 6, padding: "4px 14px", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
-            Replay
-          </button>
-        )}
       </div>
     </div>
   );
@@ -522,6 +518,7 @@ export default function HerdDemo() {
   const [ghKey, setGhKey] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [githubStarted, setGithubStarted] = useState(false);
+  const [demoDone, setDemoDone] = useState(false);
 
   const goToGitHub = useCallback(() => {
     setGithubStarted(true);
@@ -532,9 +529,12 @@ export default function HerdDemo() {
     setTermKey(k => k + 1);
     setGhKey(k => k + 1);
     setGithubStarted(false);
+    setDemoDone(false);
     setPlaying(true);
     setActiveTab("terminal");
   }, []);
+
+  const handleDemoDone = useCallback(() => setDemoDone(true), []);
 
   const start = useCallback(() => setPlaying(true), []);
 
@@ -611,6 +611,17 @@ export default function HerdDemo() {
             </button>
           );
         })}
+        {demoDone && (
+          <button onClick={replay} style={{
+            marginLeft: "auto", marginRight: 8,
+            background: "transparent", color: g.text,
+            border: `1px solid ${g.mutedBorder}`, borderRadius: 6,
+            padding: "4px 14px", fontSize: 11, cursor: "pointer",
+            fontFamily: "inherit", animation: "herd-fade 0.3s ease",
+          }}>
+            Replay
+          </button>
+        )}
       </div>
 
       {/* both phases always mounted, toggled by display */}
@@ -618,7 +629,7 @@ export default function HerdDemo() {
         <TerminalPhase key={termKey} onDone={goToGitHub} autoStart={playing} />
       </div>
       <div style={{ display: activeTab === "github" ? "flex" : "none", flexDirection: "column", height: 460 }}>
-        <GitHubPhase key={ghKey} onReplay={replay} autoStart={githubStarted} />
+        <GitHubPhase key={ghKey} onReplay={replay} onDone={handleDemoDone} autoStart={githubStarted} />
       </div>
 
       {/* play overlay — only on terminal tab, before playing */}
