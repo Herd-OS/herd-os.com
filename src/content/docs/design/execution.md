@@ -125,12 +125,13 @@ agent's system prompt instructs it to run `git push` after completing each
 file or logical unit. This ensures that if the worker times out or crashes,
 the retry starts from where it left off rather than from scratch.
 
-To track progress, the agent creates a `WORKER_PROGRESS.md` file at the
-repository root before its first push. This file contains a checklist of
-completed and remaining items. On retry, the agent reads the existing file
-to understand what was already done.
+To track progress, the agent creates a `.herd/progress/<issue-number>.md` file
+before its first push. Each worker writes to a unique file (e.g., issue #17
+writes to `.herd/progress/17.md`), preventing merge conflicts between parallel
+workers. This file contains a checklist of completed and remaining items. On
+retry, the agent reads the existing file to understand what was already done.
 
-Example `WORKER_PROGRESS.md`:
+Example `.herd/progress/17.md`:
 ```
 - [x] Create auth model in internal/auth/model.go
 - [x] Add validation helpers
@@ -138,9 +139,10 @@ Example `WORKER_PROGRESS.md`:
 - [ ] Update API handler
 ```
 
-The Integrator removes `WORKER_PROGRESS.md` during consolidation (after
-merging the worker branch into the batch branch) so it does not appear in
-the final batch PR.
+The Integrator removes the `.herd/progress/` directory during consolidation
+(after merging the worker branch into the batch branch) so progress files
+do not appear in the final batch PR. For backward compatibility, legacy
+`WORKER_PROGRESS.md` files at the repo root are also removed.
 
 #### Retry Resume
 
@@ -148,8 +150,8 @@ When a worker is re-dispatched for a previously timed-out task, it checks
 whether the worker branch already exists on the remote. If it does, the
 worker checks out the existing branch (which contains partial work from the
 previous attempt) instead of creating a fresh branch from the batch branch.
-The agent then reads `WORKER_PROGRESS.md` to continue where the previous
-attempt stopped.
+The agent then reads `.herd/progress/<issue-number>.md` to continue where
+the previous attempt stopped.
 
 ### Concurrency
 
@@ -161,7 +163,7 @@ GitHub Actions limits.
 
 | Failure | Response |
 |---------|----------|
-| Worker crashes mid-task | Partial work preserved via incremental pushes; Action fails; worker triggers Monitor for immediate response; Monitor re-dispatches; retried worker resumes from existing branch and WORKER_PROGRESS.md |
+| Worker crashes mid-task | Partial work preserved via incremental pushes; Action fails; worker triggers Monitor for immediate response; Monitor re-dispatches; retried worker resumes from existing branch and `.herd/progress/<issue-number>.md` |
 | Worker produces bad code | Integrator re-runs failed CI once (transient filter), then dispatches fix workers up to the CI fix cap; at cap, reverts consolidation and labels issue failed |
 | Worker can't complete task | Labels issue failed, triggers Monitor; Monitor comments diagnostics and @mentions notify_users |
 | Work already done (no-op) | Posts a Worker Report comment ("No changes were needed"), labels issue done without creating a branch; Integrator advances normally |
@@ -256,6 +258,15 @@ Given a completed workflow run ID, the Integrator resolves the worker branch:
 4. If the worker branch exists, merge into batch branch. If no branch exists
    (no-op worker), skip merge. Either way, the issue counts toward tier
    completion.
+
+### Post-Merge Failure Handling
+
+If the merge succeeds but a downstream step fails (e.g., push rejected due to
+non-fast-forward), the Integrator relabels the issue from `herd/status:done` to
+`herd/status:failed` and posts a diagnostic comment. This ensures the issue is
+retried automatically rather than being treated as complete. The Integrator also
+resets the local batch branch to match the remote tracking branch before each
+checkout, preventing stale-branch issues.
 
 ### Branch Cleanup
 
@@ -652,6 +663,24 @@ Commands are accepted from users with `OWNER`, `MEMBER`, or `COLLABORATOR` assoc
 ### Monitor Integration
 
 The Monitor posts `/herd retry <N>` and `/herd fix-ci` comments instead of dispatching workflows directly. This ensures all command execution flows through the same handler, maintaining single responsibility.
+
+### Failure Recovery
+
+When integrator steps fail, the CLI posts a comment on the relevant issue or batch PR:
+
+```
+⚠️ **Integrator failed** during <step>: <error>
+
+You can retry with `/herd integrate` on this issue or the batch PR.
+```
+
+The `/herd integrate` command manually triggers the full integrator cycle for a batch. It can be posted on:
+- **Any issue belonging to a batch** — extracts the batch number from the issue's YAML frontmatter
+- **A batch PR** — extracts the batch number from the `herd/batch/<N>-<slug>` branch name
+
+The cycle runs: consolidate any remaining worker branches → check CI → advance tiers → review. This replaces the previous workaround of relabeling a done issue as failed to re-trigger the integrator.
+
+Comments are posted to the issue being processed (for run-based triggers) or the batch PR (for batch-based triggers).
 
 ---
 
