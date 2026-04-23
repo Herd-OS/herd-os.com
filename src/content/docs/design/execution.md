@@ -345,6 +345,24 @@ to the acceptance criteria list as `"User requested: <description>"`. This
 ensures the reviewer checks user-requested changes equally alongside original
 acceptance criteria, rather than treating them as a separate prompt section.
 
+### User Feedback
+
+The reviewer also collects non-HerdOS user comments from the PR and passes them
+to the agent as a `## User Feedback` section. Users can comment on a PR to push
+back on findings (e.g., "The nil check finding is a false positive — the caller
+guarantees non-nil") and the next review cycle will see that comment and skip
+re-flagging the issue. The agent is instructed to treat user feedback as
+authoritative:
+
+- If a user says a finding is a false positive, the agent will not re-flag it.
+- If a user provides context explaining why code is correct, the agent accepts their explanation.
+- If a user requests a specific change, the agent treats it as a requirement.
+
+HerdOS bot comments (review findings, integrator messages, worker progress) are
+filtered out of user feedback collection so they don't feed back into the
+reviewer's prompt. This applies to both batch PR reviews and standalone
+`/herd review` runs on non-batch PRs.
+
 ### Severity-Based Filtering
 
 Review findings are classified by severity:
@@ -807,11 +825,15 @@ Commands are accepted from users with `OWNER`, `MEMBER`, or `COLLABORATOR` assoc
 | `/herd fix-ci` | Issue or PR | Check CI status and dispatch a fix worker if CI failed |
 | `/herd retry` | Issue | Re-dispatch the current failed issue's worker |
 | `/herd retry <N>` | Issue or PR | Re-dispatch failed issue #N's worker |
-| `/herd review` | PR | Trigger an agent review of the batch PR |
+| `/herd review` | PR | Trigger an agent review of the PR |
 | `/herd fix <description>` | PR | Create a fix issue from the description and dispatch a worker |
 | `/herd integrate` | Issue or PR | Run the full integrator cycle: consolidate → check CI → advance → review |
 | `/herd dispatch` | Issue | Dispatch the current issue (must be ready or blocked) |
 | `/herd dispatch <N>` | Issue or PR | Dispatch issue #N (must be ready or blocked) |
+
+#### Non-Batch PR Reviews
+
+`/herd review` works on any PR, not just batch PRs. When used on a non-batch PR, it runs the same agent review and posts a severity-classified findings comment, but skips all batch-specific logic: no fix issues are created, no workers are dispatched, and no fix cycles are tracked. This is useful for getting an AI review on regular PRs without the full Herd orchestration.
 
 ### Monitor Integration
 
