@@ -345,6 +345,24 @@ to the acceptance criteria list as `"User requested: <description>"`. This
 ensures the reviewer checks user-requested changes equally alongside original
 acceptance criteria, rather than treating them as a separate prompt section.
 
+### User Feedback
+
+The reviewer also collects non-HerdOS user comments from the PR and passes them
+to the agent as a `## User Feedback` section. Users can comment on a PR to push
+back on findings (e.g., "The nil check finding is a false positive — the caller
+guarantees non-nil") and the next review cycle will see that comment and skip
+re-flagging the issue. The agent is instructed to treat user feedback as
+authoritative:
+
+- If a user says a finding is a false positive, the agent will not re-flag it.
+- If a user provides context explaining why code is correct, the agent accepts their explanation.
+- If a user requests a specific change, the agent treats it as a requirement.
+
+HerdOS bot comments (review findings, integrator messages, worker progress) are
+filtered out of user feedback collection so they don't feed back into the
+reviewer's prompt. This applies to both batch PR reviews and standalone
+`/herd review` runs on non-batch PRs.
+
 ### Severity-Based Filtering
 
 Review findings are classified by severity:
@@ -408,8 +426,8 @@ resolution procedure rather than attempting ad-hoc fixes.
 
 On each re-review, the reviewer receives its prior review comments as context to
 maintain consistency and avoid contradicting previous decisions. This cycle
-repeats until the agent approves or `review_max_fix_cycles` (default 3) is
-reached, at which point the Integrator comments on the PR with the remaining
+repeats until the agent approves or `review_max_fix_cycles` is
+reached (default 0 = unlimited), at which point the Integrator comments on the PR with the remaining
 issues and waits for human intervention.
 
 ### Safety Valve
@@ -721,7 +739,7 @@ graph TD
     D -->|CI failed| G["Agent analyzes failure logs,<br>creates fix issues"]
     G --> H["Fix workers execute →<br>re-consolidate → CI runs again"]
     H -->|Passes| DONE2["Done"]
-    H -->|Fails| I{"ci_max_fix_cycles<br>reached? (default: 2)"}
+    H -->|Fails| I{"ci_max_fix_cycles<br>reached? (default: 0/unlimited)"}
     I -->|No| G
     I -->|Yes| J["Integrator reverts consolidation<br>Issue labeled failed,<br>comment with CI details"]
 ```
@@ -807,11 +825,15 @@ Commands are accepted from users with `OWNER`, `MEMBER`, or `COLLABORATOR` assoc
 | `/herd fix-ci` | Issue or PR | Check CI status and dispatch a fix worker if CI failed |
 | `/herd retry` | Issue | Re-dispatch the current failed issue's worker |
 | `/herd retry <N>` | Issue or PR | Re-dispatch failed issue #N's worker |
-| `/herd review` | PR | Trigger an agent review of the batch PR |
+| `/herd review` | PR | Trigger an agent review of the PR |
 | `/herd fix <description>` | PR | Create a fix issue from the description and dispatch a worker |
 | `/herd integrate` | Issue or PR | Run the full integrator cycle: consolidate → check CI → advance → review |
 | `/herd dispatch` | Issue | Dispatch the current issue (must be ready or blocked) |
 | `/herd dispatch <N>` | Issue or PR | Dispatch issue #N (must be ready or blocked) |
+
+#### Non-Batch PR Reviews
+
+`/herd review` works on any PR, not just batch PRs. When used on a non-batch PR, it runs the same agent review and posts a severity-classified findings comment, but skips all batch-specific logic: no fix issues are created, no workers are dispatched, and no fix cycles are tracked. This is useful for getting an AI review on regular PRs without the full Herd orchestration.
 
 ### Monitor Integration
 
@@ -843,10 +865,10 @@ Every automated feedback loop has a hard cap:
 
 | Loop | Config Key | Default | At Limit | Dedup Label |
 |------|-----------|---------|----------|-------------|
-| Agent review / fix / re-review | review_max_fix_cycles | 3 | Comments on PR, waits for human | — |
+| Agent review / fix / re-review | review_max_fix_cycles | 0 (unlimited) | Comments on PR, waits for human | — |
 | Monitor re-dispatch | max_redispatch_attempts | 3 | Labels issue failed, stops | — |
 | Conflict resolution | max_conflict_resolution_attempts | 2 | Falls back to notify | `herd/rebase-pending` |
-| CI failure fix cycles | ci_max_fix_cycles | 2 | Reverts consolidation, notifies user (0 = notify-only) | `herd/ci-fix-pending` |
+| CI failure fix cycles | ci_max_fix_cycles | 0 (unlimited) | Notifies user | `herd/ci-fix-pending` |
 
 ### Merge Strategy
 
