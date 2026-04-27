@@ -272,6 +272,8 @@ graph TD
 
 Opening the batch PR is idempotent: if concurrent advance-on-close triggers race, the second call detects the existing PR (via listing or by handling a 422 "already exists" error) and returns its number instead of failing.
 
+Before opening the batch PR, the Integrator sanity-checks that the milestone's issue list returned by the GitHub API is complete (the count of fetched issues is at least `OpenIssues + ClosedIssues`). If the list is short — typically a transient partial API response — it logs `Warning: milestone #N has X expected issues (Y open + Z closed) but only K were returned by the API; skipping batch PR to avoid premature open` and skips PR creation; the PR opens on a subsequent advance once the API returns complete data. Likewise, if the issue triggering an advance is not found in any tier (another partial-response symptom), the Integrator logs `Warning: issue #N not found in any tier of milestone #M (possibly partial API response); skipping advance` and treats the trigger as a no-op rather than returning an error.
+
 ### Run-to-Branch Resolution
 
 Given a completed workflow run ID, the Integrator resolves the worker branch:
@@ -794,7 +796,7 @@ The user can then dispatch with `herd dispatch --batch <N>`.
 
 ---
 
-## 12. Comment Commands
+## 12. Commands
 
 HerdOS supports `/herd` commands posted as comments on issues and PRs. This provides a unified entry point for both human and automated interactions.
 
@@ -820,16 +822,19 @@ Commands are accepted from users with `OWNER`, `MEMBER`, or `COLLABORATOR` assoc
 
 ### Available Commands
 
-| Command | Context | Description |
-|---------|---------|-------------|
-| `/herd fix-ci` | Issue or PR | Check CI status and dispatch a fix worker if CI failed |
-| `/herd retry` | Issue | Re-dispatch the current failed issue's worker |
-| `/herd retry <N>` | Issue or PR | Re-dispatch failed issue #N's worker |
-| `/herd review` | PR | Trigger an agent review of the PR |
-| `/herd fix <description>` | PR | Create a fix issue from the description and dispatch a worker |
-| `/herd integrate` | Issue or PR | Run the full integrator cycle: consolidate → check CI → advance → review |
-| `/herd dispatch` | Issue | Dispatch the current issue (must be ready or blocked) |
-| `/herd dispatch <N>` | Issue or PR | Dispatch issue #N (must be ready or blocked) |
+| Command | Kind | Context | Description |
+|---------|------|---------|-------------|
+| `/herd fix-ci` | Slash | Issue or PR | Check CI status and dispatch a fix worker if CI failed |
+| `/herd retry` | Slash | Issue | Re-dispatch the current failed issue's worker |
+| `/herd retry <N>` | Slash | Issue or PR | Re-dispatch failed issue #N's worker |
+| `/herd review` | Slash | PR | Trigger an agent review of the PR |
+| `/herd fix <description>` | Slash | PR | Create a fix issue from the description and dispatch a worker |
+| `/herd integrate` | Slash | Issue or PR | Run the full integrator cycle: consolidate → check CI → advance → review |
+| `/herd dispatch` | Slash | Issue | Dispatch the current issue (must be ready or blocked) |
+| `/herd dispatch <N>` | Slash | Issue or PR | Dispatch issue #N (must be ready or blocked) |
+| `herd review <pr-number>` | CLI | Local terminal | Open an interactive Claude Code session pre-loaded with the PR's diff, comments, and CI status. The agent acts as a reviewer/fixer assistant — you drive the conversation; it can read code, discuss findings, and make changes if you ask. It does NOT auto-dispatch workers or create issues. |
+
+Note on `herd review <pr-number>` vs `/herd review`: the CLI command opens an interactive local agent session for discussing and optionally fixing a PR — you stay in the loop and the agent only makes changes you approve. The slash command runs an automated agent review on the PR and posts findings as a comment. Use the CLI when you want a back-and-forth; use the slash command when you want a one-shot pre-screen.
 
 #### Non-Batch PR Reviews
 
