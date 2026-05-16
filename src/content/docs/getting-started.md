@@ -133,6 +133,19 @@ If issue creation fails after planning, the plan file is preserved and the exact
 herd plan --from-file .herd/state/1234567890.json
 ```
 
+### Plan File Validation
+
+After writing the plan file, the agent self-verifies it (re-reads the file, confirms the JSON parses, and checks the schema before declaring success). When the file is loaded — either at the end of an interactive session or via `--from-file` — herd applies the same structural checks:
+
+- `batch_name` is non-empty.
+- At least one task is present.
+- Each task has a non-empty `title` and at least one `acceptance_criteria` entry.
+- Every `depends_on` index is in range and does not reference its own task.
+- `complexity` is one of `low`, `medium`, `high`, or empty.
+- `type` is one of `feature`, `bugfix`, or empty.
+
+If a check fails, herd fails fast and the error names the offending task index, title, and field — for example, `task 3 ("Add login route"): depends_on[1]=7 is out of range [0,5)`. Edit the plan JSON to fix the issue and re-run `herd plan --from-file <path>` to retry without restarting the agent session.
+
 ## Dispatching Workers
 
 After planning, Tier 0 tasks are dispatched automatically. To manually dispatch:
@@ -259,7 +272,7 @@ These are loaded automatically when the respective role runs.
 
 - **Worker failure** — The issue is labeled `herd/status:failed` and the Monitor is triggered immediately for fast escalation
 - **Tier stuck** — If any issue in a tier fails, the tier is stuck and the next tier won't be dispatched until the failure is resolved (manually or by the Monitor's auto-redispatch)
-- **Merge conflict** — When `on_conflict: dispatch-resolver`, the Integrator creates a conflict-resolution issue and dispatches a worker to resolve it. The number of attempts is limited by `max_conflict_resolution_attempts`. When `on_conflict: notify`, a comment is posted on the issue for manual resolution.
+- **Merge conflict** — When `on_conflict: dispatch-resolver`, the Integrator creates a conflict-resolution issue and dispatches a worker to resolve it. The number of attempts is limited by `max_conflict_resolution_attempts`; when that budget is exhausted, the batch enters cascade-failed state and the `herd/cascade-failed` label is applied to the batch PR — see [design/execution.md → When cascades fail](design/execution.md#when-cascades-fail). When `on_conflict: notify`, a comment is posted on the issue for manual resolution.
 - **Review safety valve** — If a single agent review finds more than 10 issues, fix workers are not created (to prevent runaway invocations). The PR is flagged for manual intervention.
 - **Unparseable review output** — If the review agent returns output that can't be parsed, the Integrator retries once after a 5-second delay within the same invocation. If both attempts fail, it posts a `⚠️ HerdOS Integrator — Agent review failed to produce valid output after 2 attempts` comment on the batch PR. Run `/herd review` on the PR to retry — the Integrator does not silently drop the review.
 
@@ -270,6 +283,14 @@ Some tasks in a batch may be labeled `herd/type:manual` — these require human 
 ### Re-triggering Review
 
 When a human submits a review on the batch PR, the Integrator's `re-review` job runs automatically, invoking the agent for a fresh review against the current diff. This allows you to push manual fixes and have the agent re-evaluate.
+
+## Interactive PR Review
+
+```bash
+herd review <pr-number>
+```
+
+Opens an interactive read-only review session pre-loaded with the PR's diff, comments, and CI status. The agent reads code and discusses findings with you, and drafts `/herd fix` comments for any actionable changes — it never edits files locally. When you approve a draft, the agent posts it via `gh pr comment`, and herd's batch workers handle the actual edit like any other fix task.
 
 ## Comment Commands
 
