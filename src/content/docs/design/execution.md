@@ -102,6 +102,30 @@ Before pushing changes, workers run validation commands:
 
 If validation fails, the agent is re-invoked with the error output. If it fails again after retry, the worker is marked as failed.
 
+#### Validation Marker
+
+The worker code (not the agent) records the outcome of pre-push validation in two
+files under `.herd/progress/`, both keyed by issue number and both committed so
+they survive across worker invocations:
+
+- `.herd/progress/<N>.validation` — an empty marker file written **only** after
+  `runValidation` reports that every command passed. Its presence means
+  "validation actually passed for this issue." The marker is removed at the start
+  of every agent invocation and on any validation failure, so a stale marker from
+  a previous pass can never be carried over.
+- `.herd/progress/<N>.validation.errors` — the combined output of the failing
+  validation commands, written whenever validation fails (and removed once
+  validation passes). The output is truncated to ~16 KB, keeping the tail since
+  the most relevant errors appear last. On the next attempt the worker reads this
+  file and injects it into the agent prompt under a
+  `## Previous attempt's validation failed with:` heading.
+
+These files are written, removed, and committed by the worker framework. They are
+distinct from the agent-written `.herd/progress/<N>.md` checklist described under
+[Incremental Push and Progress Tracking](#incremental-push-and-progress-tracking):
+the progress file reflects only what the *agent* claims it finished, while the
+validation marker reflects whether validation *actually* passed.
+
 Validation is Go-specific — it only runs when a `go.mod` file exists in the repository root.
 
 ### Worker Reports
@@ -143,6 +167,13 @@ writes to `.herd/progress/17.md`), preventing merge conflicts between parallel
 workers. This file contains a checklist of completed and remaining items. On
 retry, the agent reads the existing file to understand what was already done.
 
+The `.herd/progress/<issue-number>.md` file is **agent-written** and means only
+"the agent claims its checklist is done." It is not proof that the work is
+correct — for that, the worker relies on the separate, worker-written
+`.herd/progress/<issue-number>.validation` marker (see
+[Validation Marker](#validation-marker)), which is present only when pre-push
+validation actually passed.
+
 Example `.herd/progress/17.md`:
 ```
 - [x] Create auth model in internal/auth/model.go
@@ -153,7 +184,10 @@ Example `.herd/progress/17.md`:
 
 The Integrator removes the `.herd/progress/` directory during consolidation
 (after merging the worker branch into the batch branch) so progress files
-do not appear in the final batch PR. For backward compatibility, legacy
+do not appear in the final batch PR. This removes everything under that
+directory, including the worker-written `.herd/progress/<issue-number>.validation`
+marker and `.herd/progress/<issue-number>.validation.errors` files, so none of
+them leak into the final batch PR either. For backward compatibility, legacy
 `WORKER_PROGRESS.md` files at the repo root are also removed.
 
 #### Live Progress Updates
@@ -179,15 +213,28 @@ the current batch branch. A warning is logged:
 branch." The previous partial work is lost, but this is preferable to crashing
 and leaving the issue stuck as failed.
 
-If the resumed worker branch's progress file (`.herd/progress/<issue-number>.md`
-or legacy `WORKER_PROGRESS.md`) shows all items checked off — every checkbox is
-`- [x]` and none are `- [ ]` — the worker skips agent invocation entirely. This
-handles the case where a previous attempt completed all work and pushed it, but
-timed out before finishing validation or posting the worker report. The worker
-still runs pre-push validation (build, test, vet, lint), posts the worker report,
-pushes the branch, and labels the issue as done. If the progress file shows
-incomplete work, the normal retry flow continues (the agent is launched with the
-progress file as context to continue where the previous attempt stopped).
+The skip-agent fast path requires **both** signals: the progress file
+(`.herd/progress/<issue-number>.md` or legacy `WORKER_PROGRESS.md`) must show all
+items checked off — every checkbox is `- [x]` and none are `- [ ]` — **and** the
+worker-written `.herd/progress/<issue-number>.validation` marker must be present.
+When both hold, the worker skips agent invocation entirely. This handles the case
+where a previous attempt completed all work, passed validation, and pushed it, but
+timed out before posting the worker report. The worker still runs pre-push
+validation (build, test, vet, lint), posts the worker report, pushes the branch,
+and labels the issue as done.
+
+When the progress file is complete but the validation marker is **absent** — the
+previous attempt's validation failed, so the marker was removed and never
+re-created — the worker does **not** take the fast path. Instead it re-invokes the
+agent and injects the saved `.herd/progress/<issue-number>.validation.errors` into
+the prompt under `## Previous attempt's validation failed with:`. In this case the
+worker uses a retry prompt variant that explicitly tells the agent the progress
+file is **stale** and must not be honored: the validation errors are the only task,
+and the agent must not skip work just because the checklist looks complete.
+
+If the progress file shows incomplete work, the normal retry flow continues (the
+agent is launched with the progress file as context to continue where the previous
+attempt stopped).
 
 ### Concurrency
 
@@ -199,7 +246,7 @@ GitHub Actions limits.
 
 | Failure | Response |
 |---------|----------|
-| Worker crashes mid-task | Partial work preserved via incremental pushes; Action fails; worker triggers Monitor for immediate response; Monitor re-dispatches; retried worker resumes from existing branch and `.herd/progress/<issue-number>.md`; if the batch branch has diverged and merge conflicts, the worker falls back to a fresh branch (partial work is lost); if the progress file shows all work complete, the retry skips agent invocation and proceeds directly to validation and reporting |
+| Worker crashes mid-task | Partial work preserved via incremental pushes; Action fails; worker triggers Monitor for immediate response; Monitor re-dispatches; retried worker resumes from existing branch and `.herd/progress/<issue-number>.md`; if the batch branch has diverged and merge conflicts, the worker falls back to a fresh branch (partial work is lost); the retry skips agent invocation and proceeds directly to validation and reporting only when the progress file shows all work complete **and** the `.herd/progress/<issue-number>.validation` marker is present — otherwise the agent is re-invoked with the saved validation errors |
 | Worker produces bad code | Integrator dispatches fix workers up to the CI fix cap; at cap, reverts consolidation and labels issue failed |
 | Worker can't complete task | Labels issue failed, triggers Monitor; Monitor comments diagnostics and @mentions notify_users |
 | Work already done (no-op) | Posts a Worker Report comment ("No changes were needed"), labels issue done without creating a branch; Integrator advances normally |
@@ -900,6 +947,84 @@ Manual tasks participate fully in the DAG:
   it's closed. Manual tasks that grant permissions or set up external services should always be in Tier 0 so they unblock automated tasks that depend on them
 - **Notifications** -- when `notify_users` is configured, the Planner @mentions
   those users on manual task issues for visibility
+
+### Manual-task findings forwarding
+
+Manual tasks often produce information that downstream automated tasks need —
+a chosen library version, an API key location, a configuration decision, the
+shape of a value the human pasted into a secret. Workers, however, read only
+their **own** issue body at execution time (`worker.Exec` calls `Issues().Get`
+on its assigned issue; it never fetches dependency issues or their comments).
+Planner-inlined dependency context is frozen at plan time, so findings that a
+human records *after* planning would otherwise never reach the worker. The
+Integrator closes this gap by forwarding those findings into the dependent
+issue's body at dispatch time.
+
+**When and what.** Just before `dispatchReadyIssues` dispatches an automated
+issue, for each of that issue's `depends_on` entries that is a manual task
+(label `herd/type:manual`) **and** complete (state `closed` or label
+`herd/status:done`), the Integrator extracts the manual task's findings and
+injects them into the dependent issue's body. Findings are simply:
+
+- The manual task's issue body (with YAML front matter stripped via
+  `issues.StripFrontMatter`), kept verbatim.
+- Every human-authored comment on the manual issue, in chronological order.
+  Comments whose author login ends in `[bot]` and comments whose trimmed
+  body matches a known herd automated-comment prefix (e.g. `👋 **Manual
+  task**`, `🔍 **HerdOS Agent Review**`, `📋 **Worker Progress**`) are
+  excluded — those are not human findings.
+
+There is no special syntax the human must use. Anything they write in the
+issue body or as a non-bot comment is treated as findings.
+
+**Injected block format.** The forwarded text is wrapped in herd-internal
+HTML-comment markers keyed to the source manual issue:
+
+```
+<!-- herd:injected-findings:<N> -->
+## Context from #<N> (manual task)
+
+<extracted body + comments>
+
+<!-- /herd:injected-findings:<N> -->
+```
+
+Humans never author these markers — they exist solely so the Integrator can
+recognise an already-injected block.
+
+**Idempotency.** Because injection is keyed by the source issue number, a
+re-dispatch (or a second pass over the same dependent issue) detects the
+existing `<!-- herd:injected-findings:<N> -->` marker and skips re-injecting.
+The dependent issue's body therefore contains each manual dep's findings at
+most once, regardless of retry count.
+
+**Scope: manual deps only.** Only `herd/type:manual` dependencies forward
+findings. An automated dependency's "output" is the code it commits to the
+batch branch, which the worker already gets by checking out that branch —
+there is nothing to forward. Scanning the dependency list for manual deps is
+therefore the only extra work the Integrator does at dispatch time.
+
+**Size caps.** Two limits apply:
+
+- **Per dependency:** extracted findings are capped at 8 KB
+  (`perDepFindingsCap` = 8192 bytes). Content beyond the cap is truncated at
+  a UTF-8 rune boundary and replaced with a notice pointing at the source
+  issue: `_...truncated; see #<N> for full findings._`.
+- **Per dependent body:** if injecting a block would push the dependent
+  issue's body over `issues.MaxIssueBodyChars` (65000, GitHub's
+  safety-margin limit — see
+  [github-integration.md → Body Size Limit](github-integration.md#body-size-limit)),
+  that single injection is skipped with a warning. Dispatch still proceeds
+  with whatever findings did fit, so an oversize manual dep never blocks the
+  worker.
+
+**Out of scope.** Findings are read at dispatch time only — edits a human
+makes to the manual issue *after* its findings have been injected into a
+dependent are not re-forwarded automatically (the keyed marker means a
+subsequent injection pass treats that source as already done). Findings are
+also unstructured: there is no schema, no typed fields, no machine-readable
+contract — only freeform markdown that the downstream worker reads as part
+of its prompt.
 
 ---
 
