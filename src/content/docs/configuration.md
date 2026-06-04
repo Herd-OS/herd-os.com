@@ -83,9 +83,39 @@ agent:
   max_turns: 0                     # ignored by opencode
 ```
 
-The runner environment must have an API key for whichever provider the model resolves to (default, recommended) — e.g. `ANTHROPIC_API_KEY` for `anthropic/...` models, `OPENAI_API_KEY` for `openai/...` models. Alternatively, for `openai/...` models, ChatGPT subscription auth (opt-in, via a community plugin) is available by setting the `OPENCODE_AUTH_JSON` env var to a base64-encoded OpenCode `auth.json`. For `anthropic/...` models, an opt-in Anthropic subscription path exists via `CLAUDE_CODE_OAUTH_TOKEN` plus the community-maintained `opencode-claude-auth` bridge plugin — the same OAuth token the `claude` provider uses. API key is the default; the subscription paths are opt-in. See [runners.md](runners.md#2-agent-authentication) for the authentication setup.
+The runner environment must have an API key for whichever provider the model resolves to — e.g. `ANTHROPIC_API_KEY` for `anthropic/...` models, `OPENAI_API_KEY` for `openai/...` models. See [runners.md](runners.md#2-agent-authentication) for the authentication setup.
 
-> `CLAUDE_CODE_OAUTH_TOKEN` serves **both** the `claude` provider (Pro/Max subscription auth) **and** the `opencode` provider's opt-in Anthropic subscription bridge (`anthropic/...` models, via `opencode-claude-auth`). The bridge is only registered when the token is set, so the OpenCode API-key path is unaffected when it is absent.
+## Local vs Docker Agent Execution
+
+`agent.exec` controls where `herd plan` runs the coding agent. The default is `local`: the agent runs directly on your machine. Power users who already have the agent CLIs installed prefer this — there is no container overhead.
+
+Setting `agent.exec: docker` runs `herd plan` inside the published runner image (`ghcr.io/herd-os/herd-runner-base`). herd mounts your current repo at `/work` inside the container and runs the same agent toolchain the workers use, so you need zero local agent install beyond Docker + the herd binary.
+
+```yaml
+agent:
+  provider: "claude"
+  exec: "docker"                   # run `herd plan` inside the runner image
+  exec_image: ""                   # optional: override the default base image
+```
+
+### Override precedence
+
+For one-off runs you can override the configured value. Precedence, highest first:
+
+```
+--exec local|docker  (flag)  >  HERD_EXEC env  >  agent.exec config  >  local (default)
+```
+
+### Recursion guard
+
+When herd runs inside the container it sets `HERD_INSIDE_CONTAINER=1` and forces `local` execution for that process. This means a mounted `.herdos.yml` that says `exec: docker` cannot cause infinite docker-in-docker recursion — the inner herd always runs the agent locally inside the container. A single warning is logged when the guard fires.
+
+### Behavior under `exec: docker`
+
+- **First-run image pull**: the first run pulls the multi-minute base image (Docker caches it afterward). herd prints a one-line `Pulling …` hint before the pull so you know what is happening.
+- **File ownership**: herd runs the container with `--user $(id -u):$(id -g)`, so files the agent creates in your worktree are owned by you, not root.
+- **gh auth**: if `~/.config/gh` exists it is mounted read-only, so the in-container herd can call the GitHub API with your existing `gh` credentials.
+- **`$EDITOR` caveat**: if the agent shells out to `$EDITOR` (e.g. Claude Code for some prompts), that editor runs **inside** the container, which does not carry your host editor. Avoid editor-dependent flows under `exec: docker`, or use `exec: local` for those.
 
 ## Local vs Docker Agent Execution
 
