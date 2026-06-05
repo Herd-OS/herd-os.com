@@ -315,10 +315,9 @@ For example, to add a Postgres client on top of the base image:
 FROM ghcr.io/herd-os/herd-runner-base:v1.4.2
 USER root
 RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
-USER runner
 ```
 
-The base image runs as the non-root `runner` user, so switch to `root` to install packages and switch back when done.
+The base image's entrypoint starts as root, optionally remaps the runner UID/GID (see [Matching host UID/GID for bind mounts](#matching-host-uidgid-for-bind-mounts) below), then drops to the `runner` user via `gosu` before invoking the GitHub Actions runner. Do **not** end your `Dockerfile.herd_runner` with `USER runner` — that opts out of the remap path. The entrypoint detects whether the container started as root and falls back to the legacy non-root path if not, so existing wrappers continue to work, but they lose the `RUNNER_UID` override.
 
 The **Herd CLI** is not baked into the image — the entrypoint script that ships inside the published base image (`ghcr.io/herd-os/herd-runner-base`) downloads it at container startup. This ensures runners always use the latest version without rebuilding. Set `HERD_VERSION` in `.env` to pin a specific version.
 
@@ -348,6 +347,23 @@ services:
 
 `herd init` automatically merges the override into `docker-compose.herd.yml`. The override file is never overwritten.
 
+### Matching host UID/GID for bind mounts
+
+By default the in-container `runner` user is UID/GID **1001:1001**, baked into the base image at build time (the next free UID on `ubuntu:24.04`, which reserves 1000 for its default `ubuntu` user). If your host expects a different owner — for example, TrueNAS SCALE runs Custom Apps as the `apps` user (568:568), and the TrueNAS UI creates bind-mount directories owned by 568:568 — set `RUNNER_UID` and `RUNNER_GID` in `.env`:
+
+```bash
+RUNNER_UID=568
+RUNNER_GID=568
+```
+
+The entrypoint reads these on container start. If they differ from the build-time defaults, it `usermod`/`groupmod`s the `runner` user, recursively `chown`s `/home/runner`, `/runner`, and `/opt/herd`, then drops privileges via `gosu` before invoking the GitHub Actions runner. Same image, no rebuild, no per-host fork. The first-startup `chown -R` is one-time per UID change; restarts with the same UID skip it.
+
+Caveats:
+
+- **Do not set `RUNNER_UID=0` or `RUNNER_GID=0`.** The GitHub Actions runner refuses to run as root and the entrypoint rejects 0 to fail loudly.
+- **`Dockerfile.herd_runner` must end as root.** If your wrapper ends with `USER runner` (older `herd init` versions added this), the container starts non-root and the entrypoint skips the remap entirely. Remove the trailing `USER runner` line to opt in.
+- **Codex auth volume.** When you change `RUNNER_UID`, the existing `codex-auth` volume contents are chowned to the new UID on the next start. No re-seeding needed.
+
 ## 6. Runner images
 
 The base image is a first-party runner image published to `ghcr.io/herd-os/` on every herd release. It is **public** (no `docker login` needed to pull) and **multi-arch** (linux/amd64, linux/arm64).
@@ -374,7 +390,9 @@ herd image publish    # docker push ghcr.io/<owner>/<repo>-herd-runner:<tag>
 
 The owner and repo are detected from your git remote and lower-cased; the tag defaults to the herd version (`latest` for dev builds) and can be overridden with `--tag`.
 
-This is also automated. `herd init` installs `.github/workflows/herd-publish-runner.yml`, which builds and pushes the multi-arch consumer image (`ghcr.io/<owner>/<repo>-herd-runner:latest`) on every push to `main` that touches `Dockerfile.herd_runner`, or on manual `workflow_dispatch`. The job is gated on the `HERD_ENABLED` variable being `true` and requires `packages: write` permission (the default `GITHUB_TOKEN` is used to authenticate to GHCR).
+This is also automated. `herd init` installs `.github/workflows/herd-publish-runner.yml`, which builds and pushes the multi-arch consumer image (`ghcr.io/<owner>/<repo>-herd-runner:latest`) on `workflow_dispatch`. Trigger it after editing `Dockerfile.herd_runner` (or any change you want reflected in the published image) with `gh workflow run herd-publish-runner.yml --ref main`. The job is gated on the `HERD_ENABLED` variable being `true` and requires `packages: write` permission (the default `GITHUB_TOKEN` is used to authenticate to GHCR).
+
+> **Note:** there is no auto-trigger on push to `Dockerfile.herd_runner`. Earlier versions auto-rebuilt on every push to the wrapper, but that caused a duplicate build whenever a release tag followed a wrapper-touching PR (the tag-driven build in `release.yml` would already publish a fresh `:vX.Y.Z` image). Manual-only keeps the surface predictable; the convenience cost is one extra command per intentional rebuild.
 
 ### Migrating from the local base image
 
