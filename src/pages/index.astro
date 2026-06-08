@@ -125,8 +125,8 @@ import HerdDemo from '../components/HerdDemo.jsx';
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="mb-4"><Icon name="lucide:plug" class="size-8 text-orange" /></div>
-          <h3 class="text-lg font-bold mb-2">Agent-Agnostic</h3>
-          <p class="text-white/60 text-sm leading-relaxed">Claude Code is the first-class supported agent today. The architecture supports any agent that can read a task and produce code — Codex, Gemini CLI, and others are on the roadmap.</p>
+          <h3 class="text-lg font-bold mb-2">Multi-Provider</h3>
+          <p class="text-white/60 text-sm leading-relaxed">Claude Code, OpenCode, and Codex are first-class today — pick by capability, billing model, or both. Mix providers per role: Claude for planning, Codex for workers. Gemini CLI and Cursor are on the roadmap.</p>
         </div>
         <div class="bg-navy-light rounded-xl p-6 border border-white/5 hover:border-orange/30 transition-colors">
           <div class="mb-4"><Icon name="lucide:shield-check" class="size-8 text-orange" /></div>
@@ -227,6 +227,9 @@ import HerdDemo from '../components/HerdDemo.jsx';
         <div><span class="text-white/40">$</span> <span class="text-white">herd plan <span class="text-orange">"Add user authentication"</span></span></div>
         <div><span class="text-white/40">$</span> <span class="text-white">herd status --watch</span> <span class="text-white/40"># watch workers execute in real-time</span></div>
       </div>
+      <p class="max-w-2xl mx-auto mt-3 text-xs text-white/40 text-center">
+        Also on AUR (<code class="text-white/60 font-mono">yay -S herd-bin</code>), pre-built binaries, or from source — <a href="/docs/installation" class="text-orange/80 hover:text-orange underline">see all install methods</a>.
+      </p>
       <div class="max-w-2xl mx-auto mt-6 bg-orange/10 border border-orange/30 rounded-xl p-4 text-sm text-white/70">
         <p><span class="text-orange font-semibold">Note:</span> HerdOS runs workers on self-hosted GitHub Actions runners. You'll need at least one runner set up before dispatching. <a href="/docs/runners" class="text-orange underline hover:text-orange-dark">See the runner setup guide →</a></p>
       </div>
