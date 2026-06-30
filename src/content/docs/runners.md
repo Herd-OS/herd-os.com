@@ -402,9 +402,12 @@ herd image publish    # docker push ghcr.io/<owner>/<repo>-herd-runner:<tag>
 
 The owner and repo are detected from your git remote and lower-cased; the tag defaults to the herd version (`latest` for dev builds) and can be overridden with `--tag`.
 
-This is also automated. `herd init` installs `.github/workflows/herd-publish-runner.yml`, which builds and pushes the multi-arch consumer image (`ghcr.io/<owner>/<repo>-herd-runner:latest`) on `workflow_dispatch`. Trigger it after editing `Dockerfile.herd_runner` (or any change you want reflected in the published image) with `gh workflow run herd-publish-runner.yml --ref main`. The job is gated on the `HERD_ENABLED` variable being `true` and requires `packages: write` permission (the default `GITHUB_TOKEN` is used to authenticate to GHCR).
+This is also automated. `herd init` installs `.github/workflows/herd-publish-runner.yml`, which builds and pushes the multi-arch consumer image (`ghcr.io/<owner>/<repo>-herd-runner:latest`) on two triggers:
 
-> **Note:** there is no auto-trigger on push to `Dockerfile.herd_runner`. Earlier versions auto-rebuilt on every push to the wrapper, but that caused a duplicate build whenever a release tag followed a wrapper-touching PR (the tag-driven build in `release.yml` would already publish a fresh `:vX.Y.Z` image). Manual-only keeps the surface predictable; the convenience cost is one extra command per intentional rebuild.
+- **`push` to `main` that touches `Dockerfile.herd_runner`** — automatic. This is the path that picks up a new base-image version after merging an `Update HerdOS to <tag>` PR (which bumps the wrapper's `FROM ghcr.io/herd-os/herd-runner-base:<version>` line). Without it, workers would continue running with stale baked-in agent CLIs and project-specific tools until someone manually triggered a rebuild.
+- **`workflow_dispatch`** — manual escape hatch. `gh workflow run herd-publish-runner.yml --ref main` from your shell, or the **Run workflow** button in the Actions tab. Useful for re-publishing after editing the wrapper without going through a PR.
+
+The job is gated on the `HERD_ENABLED` variable being `true` and requires `packages: write` permission (the default `GITHUB_TOKEN` is used to authenticate to GHCR).
 
 ### Migrating from the local base image
 
@@ -462,6 +465,25 @@ See [Running runners directly with `docker run`](#running-runners-directly-with-
 ### Runner labels
 
 `workers.runner_label` in `.herdos.yml` must match the `RUNNER_LABELS` environment variable on the runner container (set in `docker-compose.herd.yml`, or via `-e RUNNER_LABELS=…` / `.env` for direct `docker run`). Default is `herd-worker`. Use different labels to route heavy tasks to specific runners (e.g., `herd-gpu`).
+
+### Worker timeout sizing
+
+`workers.timeout_minutes` configures the outer GitHub Actions job timeout for
+worker jobs. HerdOS runs the inner agent command with a shorter deadline so it
+can stop the agent, checkpoint timed-out work, run validation when applicable,
+post diagnostics, and push resumable state before GitHub Actions cancels the
+job.
+
+Avoid very low `workers.timeout_minutes` values for complex Codex tasks, Rails
+apps, or repositories with long build/test cycles. Low values reduce the cleanup
+reserve and make it more likely that GitHub Actions cancels the job before HerdOS
+can checkpoint and report useful state. Prefer increasing the worker timeout for
+test-heavy repos instead of relying on Monitor retries as the normal path.
+
+On Unix-like self-hosted runners, HerdOS starts agent commands in a process group
+and terminates that group where possible when the inner timeout fires. This helps
+clean up wrapper-spawned descendants such as Codex's native child process. On
+Windows runners, HerdOS terminates the direct child process.
 
 ## 8. Cloud Runners
 
@@ -544,5 +566,5 @@ See [configuration.md](configuration.md) for the full field reference.
 | 403 on listing PRs | Missing permission | Ensure `pull-requests: write` is in workflow permissions |
 | Dispatch succeeds but no run appears | Missing secret | Add `HERD_GITHUB_TOKEN` as org/repo secret (see section 1) |
 | Token permission errors | Insufficient scope | Fine-grained: needs Administration read/write. Classic: needs `repo` scope |
-| Integrator crashes checking CI | Missing Statuses permission | Add **Statuses: Read** to fine-grained PAT, or set `require_ci: false` in `.herdos.yml` |
+| Integrator crashes checking CI | Missing CI read permission | Add **Actions: Read**, **Checks: Read**, and **Statuses: Read** to the fine-grained PAT, or set `require_ci: false` in `.herdos.yml`. CI diagnostics are best-effort and depend on the permissions GitHub grants to the workflow/token. |
 | Auth errors in worker | Missing credentials | Verify `.env` has the right key for the configured provider — Claude: `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`; OpenCode: `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` matching `agent.model`; Codex: `OPENAI_API_KEY` or `CODEX_API_KEY` |
