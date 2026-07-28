@@ -374,10 +374,11 @@ Opening the batch PR is idempotent: if concurrent advance-on-close triggers race
 The generated batch PR body starts with a reviewer-facing `## Summary` section,
 then `Major changes:` bullets and `## Validation`, followed by the existing
 Herd operational sections: `## Tasks` and `## Worker branches`. PR creation
-remains deterministic and does not invoke an agent. New batches use the
-milestone description populated from the plan's top-level `pr_summary`; older
-batches without that metadata use fallback text derived from the milestone
-title, issue titles, and parsed acceptance criteria.
+remains deterministic and does not invoke an agent. New batches read the
+reviewer summary from structured milestone batch metadata; older batches
+without structured metadata can still use plain milestone descriptions as a
+legacy summary. Batches with neither use fallback text derived from the
+milestone title, issue titles, and parsed acceptance criteria.
 
 Before opening the batch PR, the Integrator sanity-checks that the milestone's issue list returned by the GitHub API is complete (the count of fetched issues is at least `OpenIssues + ClosedIssues`). If the list is short — typically a transient partial API response — it logs `Warning: milestone #N has X expected issues (Y open + Z closed) but only K were returned by the API; skipping batch PR to avoid premature open` and skips PR creation; the PR opens on a subsequent advance once the API returns complete data. Likewise, if the issue triggering an advance is not found in any tier (another partial-response symptom), the Integrator logs `Warning: issue #N not found in any tier of milestone #M (possibly partial API response); skipping advance` and treats the trigger as a no-op rather than returning an error.
 
@@ -585,22 +586,25 @@ and track which review cycle spawned them via a `fix_cycle` field and a
 
 Before creating another review-fix issue, the Integrator parses recent HerdOS
 review result comments and completed review-fix issues for the batch PR. The
-first implementation is deterministic-only: it compares review-cycle trends,
-deduped finding counts, and repeated package/root-cause clusters to decide
-whether the fix loop is still making progress or needs a different strategy.
+trigger is deterministic: it compares review-cycle trends, deduped finding
+counts, and repeated package/root-cause clusters to decide whether the fix loop
+is still making progress or needs a different strategy. Deterministic analysis
+also remains the fallback when synthesis is disabled, unavailable, invalid, low
+confidence, or rejected by safety gates.
 
-When the deterministic heuristics detect non-convergence, the Integrator creates
-one strategy-level fix issue instead of another broad endpoint-level review-fix
-issue. The strategy issue carries the recurring finding clusters and a duplicate
-fingerprint. Before creating one, HerdOS checks for an existing strategy fix by
-label, title, and fingerprint so repeated review triggers do not dispatch
-duplicate strategy workers.
+When the deterministic heuristics detect non-convergence, the Integrator can run
+bounded agent synthesis to group recent findings into one dominant architectural
+or root-cause cluster. Safety gates require sufficient confidence, recurring
+symptoms, cycle and fix-attempt evidence, concrete acceptance criteria, and
+duplicate fingerprint checks before HerdOS uses synthesized strategy text.
+Otherwise HerdOS creates the deterministic strategy issue.
 
 Strategy fixes use the existing worker workflow. The Integrator creates the
 issue internally and dispatches the worker directly, so no human `/herd fix`
-comment is required. Future implementations can add optional agent synthesis for
-the strategy text, but this version intentionally keeps the decision and issue
-construction deterministic.
+comment is required. The strategy issue carries the recurring finding clusters
+and a duplicate fingerprint. Before creating one, HerdOS checks for an existing
+strategy fix by label, title, and fingerprint so repeated review triggers do not
+dispatch duplicate strategy workers.
 
 #### Review fix-issue dedup
 
@@ -735,15 +739,58 @@ which path is taken. The resolver is capped at `max_conflict_resolution_attempts
 (default 2); when that budget is exhausted, the batch enters cascade-failed
 state — see [When cascades fail](#when-cascades-fail).
 
-### Monitor-Detected Batch-vs-Main Conflicts
+### Open Batch PR Conflicts
+
+Once the batch PR is open, its base branch may advance and make the PR
+unmergeable. This is distinct from Integrator consolidation conflicts: automatic
+resolver issues still handle worker branches conflicting while they are merged
+into the batch branch, controlled by `integrator.on_conflict`; open batch PR
+conflict handling resolves the batch PR head against its base branch.
+
+Live GitHub PR metadata is authoritative for current mergeability, conflict
+state, head SHA, and base SHA. HerdOS always checks the single-PR
+`PullRequests().Get()` endpoint before dispatching because the list endpoint
+does not populate the `Mergeable` field.
+
+#### Manual `/herd resolve-conflicts`
+
+Post `/herd resolve-conflicts` on an open batch PR when GitHub reports that it
+conflicts with its base branch. You can add optional context after the command:
+`/herd resolve-conflicts <context>`.
+
+The handler checks live PR mergeability before creating work:
+
+1. If GitHub reports a clean or mergeable state, the command no-ops because the
+   PR is not currently conflicting with its base.
+2. If GitHub reports mergeability as unknown, HerdOS waits briefly and retries.
+   If it is still unknown after the bounded retry, the command no-ops with a
+   retry-later warning.
+3. If GitHub reports an explicit conflict state, such as `DIRTY` or
+   `CONFLICTING`, HerdOS creates and dispatches a focused conflict-resolution
+   issue for the current PR head and base.
+
+Known non-conflict blockers, such as branch protection, required reviews,
+failing checks, or `BLOCKED` states, no-op as "not currently conflicting with
+base" rather than dispatching a resolver.
+
+Duplicate active resolver issues are keyed by batch PR, head SHA, and base SHA,
+so repeated comments do not dispatch duplicate workers for the same conflict
+state. Generated resolver issue bodies include only the triggering comment,
+current PR metadata, optional context, and concise merge/rebase instructions;
+they deliberately avoid the full PR conversation history.
+
+Generic `/herd fix` remains available for normal code fixes and keeps its
+existing behavior: batch fix issues include PR conversation history to give the
+worker review and discussion context.
+
+#### Monitor-Detected Batch-vs-Main Conflicts
 
 Previously, batch branch conflicts with main were only detected at PR creation
 time (during the final rebase). The Monitor now detects these proactively during
 patrol:
 
-1. For each open batch PR with a `herd/batch/` head branch, the Monitor calls
-   the single-PR `PullRequests().Get()` endpoint (the List endpoint does not
-   populate the `Mergeable` field)
+1. For each open batch PR with a `herd/batch/` head branch, the Monitor uses
+   live single-PR metadata
 2. If `Mergeable == false`, the batch PR has conflicts with its base branch
 3. The Monitor checks for the `herd/rebase-pending` label to prevent duplicate
    dispatches (same dedup pattern as `herd/ci-fix-pending` for CI fixes)
@@ -1261,6 +1308,8 @@ Commands are accepted from users with `OWNER`, `MEMBER`, or `COLLABORATOR` assoc
 | Command | Kind | Context | Description |
 |---------|------|---------|-------------|
 | `/herd fix-ci` | Slash | Issue or PR | Check CI status and dispatch a fix worker if CI failed |
+| `/herd resolve-conflicts` | Slash | PR | On a batch PR, check live mergeability and dispatch a focused conflict-resolution worker only when the PR currently conflicts with its base |
+| `/herd resolve-conflicts <context>` | Slash | PR | Same as above, with extra context included in the resolver issue |
 | `/herd retry` | Slash | Issue | Re-dispatch the current failed issue's worker |
 | `/herd retry <N>` | Slash | Issue or PR | Re-dispatch failed issue #N's worker |
 | `/herd review` | Slash | PR | Trigger an agent review of the PR and post one deduplicated aggregate result |
