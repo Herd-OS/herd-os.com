@@ -142,6 +142,9 @@ in a collapsible details block. Additionally, the worker posts a summary comment
 on the batch PR so the reviewer can see why no changes were made. This prevents
 the reviewer from creating fix issues for work that was already determined to be
 unnecessary. Format: **Worker #N (no-op):** No changes needed. <explanation>
+Verification findings and no-op reasoning should stay visible through the
+worker's final output and HerdOS comments, not committed repository-local
+`.herd/review-fixes-*.md` report files.
 
 ### Image Preprocessing
 
@@ -201,6 +204,12 @@ directory, including the worker-written `.herd/progress/<issue-number>.validatio
 marker and `.herd/progress/<issue-number>.validation.errors` files, so none of
 them leak into the final batch PR either. For backward compatibility, legacy
 `WORKER_PROGRESS.md` files at the repo root are also removed.
+
+HerdOS also mechanically scrubs transient worker-local review-fix artifacts
+matching `.herd/review-fixes-*.md` before worker branch finalization, standalone
+fix pushes, validation retry pushes, and timeout checkpoint commits. This guard
+is intentionally narrow: legitimate repository `.herd` role and configuration
+files such as `.herd/worker.md` remain valid and committable.
 
 #### Live Progress Updates
 
@@ -587,24 +596,30 @@ and track which review cycle spawned them via a `fix_cycle` field and a
 Before creating another review-fix issue, the Integrator parses recent HerdOS
 review result comments and completed review-fix issues for the batch PR. The
 trigger is deterministic: it compares review-cycle trends, deduped finding
-counts, and repeated package/root-cause clusters to decide whether the fix loop
-is still making progress or needs a different strategy. The cluster input is
-limited to actual findings: diff coverage sections, chunk labels, review
-aggregation headings, files-reviewed/source metadata, and other synthetic
-coverage text are ignored so clusters come from real file paths, packages, and
-root-cause terms. Persistent root-cause clusters can justify escalation even
-when raw finding counts temporarily decrease, provided the latest deduped
-finding count stays above the internal threshold and the completed-cycle and
-repeated-cluster gates pass. Deterministic analysis also remains the fallback
-when synthesis is disabled, unavailable, invalid, low confidence, or rejected by
-safety gates.
+counts, and concrete repeated package/subsystem clusters with supporting
+repeated root-cause evidence to decide whether the fix loop is still making
+progress or needs a different strategy. The cluster input is limited to actual
+findings. Synthetic labels are never valid package/subsystem clusters,
+including chunk labels, coverage headings, `none`, empty values, bare chunk
+fractions such as `1/9`, diff coverage labels, review aggregation headings,
+files-reviewed/source metadata, and other synthetic coverage text. Generic
+root-cause terms such as durable, idempotency, mutation, workflow, retry,
+repair, and dispatch are not sufficient by themselves; they can only help
+describe a strategy when a concrete recurring package/subsystem cluster exists
+and the deterministic gates pass.
 
-When the deterministic heuristics detect non-convergence, the Integrator can run
-bounded agent synthesis to group recent findings into one dominant architectural
-or root-cause cluster. Safety gates require sufficient confidence, recurring
-symptoms, cycle and fix-attempt evidence, concrete acceptance criteria, and
-duplicate fingerprint checks before HerdOS uses synthesized strategy text.
-Otherwise HerdOS creates the deterministic strategy issue.
+When deterministic eligibility succeeds, the Integrator can run bounded agent
+synthesis to refine the valid cluster into one dominant architectural or
+root-cause strategy. Synthesis is post-eligibility only: it cannot rescue an
+otherwise ineligible no-cluster or generic-only history. Safety gates require
+sufficient confidence, recurring symptoms, cycle and fix-attempt evidence,
+concrete acceptance criteria, and duplicate fingerprint checks before HerdOS
+uses synthesized strategy text. When synthesis is disabled, unavailable,
+invalid, low confidence, or rejected by safety gates, HerdOS creates the
+deterministic strategy issue.
+
+When eligibility fails, HerdOS posts or renders the normal HerdOS Agent Review
+result and creates ordinary review-fix issues through the existing review flow.
 
 Strategy fixes use the existing worker workflow. The Integrator creates the
 issue internally and dispatches the worker directly. The strategy issue carries
